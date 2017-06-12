@@ -1,8 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
-#include <BasicLinearAlgebra.h>
-#include <kalman.h>
 
 // IMU constants
 #define BALANCED_OFFSET 0.85 // sensor does not show 0 on balance but it should.
@@ -24,6 +22,7 @@
 #define WHEEL_DIAMETER 84 // in MM
 
 #include "servoMotor.cpp"
+#include "estimator.cpp"
 
 // pins for the motor encoder inputs
 #define RH_ENCODER_A 2 // interupt pin
@@ -31,11 +30,9 @@
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
 
-#define MY_DIM_N 4
-#define MY_DIM_M 1
-
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
+Estimator est;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
 
