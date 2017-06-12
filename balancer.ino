@@ -7,6 +7,14 @@
 // IMU constants
 #define BALANCED_OFFSET 0.85 // sensor does not show 0 on balance but it should.
 
+// 90 degrees in rads is 1.5708
+// Given proportion acc/9.8 = y/1.5708 solve for y
+// yields wheel multiplier
+#define WHEEL_MULTIPLIER 0.1603
+
+// pi / 180, for degrees to radians
+#define PI_OVER_ONE_EIGHTY 0.017453292519943
+
 // LED on side of robot
 #define INDICATOR 36
 
@@ -39,20 +47,18 @@ void rightEncoderEvent() {
   motorRight.encoderEvent();
 }
 
-// Given proportion acc/9.8 = y/1.5708 solve for y.
-// 90 degrees in rads is 1.5708
 float accToRadians(float acc) {
-  return 0.1603 * (acc - BALANCED_OFFSET);
+  return WHEEL_MULTIPLIER * (acc - BALANCED_OFFSET);
 }
 
 float degToRadians(float deg) {
-  return deg * (PI / 180);
+  return deg * PI_OVER_ONE_EIGHTY;
 }
 
 void setup() {
-  // Open serial communications and wait for port to open:
+  // Open serial communications
+  // and wait for port to open:
   Serial.begin(9600);
-
   while (!Serial) {}
 
   motorLeft.init();
