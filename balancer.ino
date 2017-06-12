@@ -55,6 +55,16 @@ float degToRadians(float deg) {
   return deg * PI_OVER_ONE_EIGHTY;
 }
 
+void reportError() {
+  pinMode(INDICATOR, OUTPUT);
+  while(true){
+    digitalWrite(INDICATOR, HIGH);
+    delay(300);
+    digitalWrite(INDICATOR, LOW);
+    delay(300);
+  }
+}
+
 void setup() {
   // Open serial communications
   // and wait for port to open:
@@ -68,18 +78,20 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
 
-  pinMode(INDICATOR, OUTPUT);
-  digitalWrite(INDICATOR, HIGH);
-
   //Check to see if the Inertial Sensor is wired correctly and functioning normally
   if (!bno.begin(0x05)) {
     Serial.println("Inertial Sensor failed, or not present");
+    reportError();
   } else {
 
     bno.setExtCrystalUse(true);
 
     Serial.println("Inertial Sensor present");
   }
+
+  // Turn on indicator light because we are ready to rock.
+  pinMode(INDICATOR, OUTPUT);
+  digitalWrite(INDICATOR, HIGH);
 }
 
 void loop() {
