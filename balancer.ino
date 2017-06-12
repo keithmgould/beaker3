@@ -1,5 +1,8 @@
+#include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
+#include <BasicLinearAlgebra.h>
+#include <kalman.h>
 
 // IMU constants
 #define BALANCED_OFFSET 0.85 // sensor does not show 0 on balance but it should.
@@ -20,10 +23,31 @@
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
 
+#define MY_DIM_N 4
+#define MY_DIM_M 1
+
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
+
+void leftEncoderEvent() {
+  motorLeft.encoderEvent();
+}
+
+void rightEncoderEvent() {
+  motorRight.encoderEvent();
+}
+
+// Given proportion acc/9.8 = y/1.5708 solve for y.
+// 90 degrees in rads is 1.5708
+float accToRadians(float acc) {
+  return 0.1603 * (acc - BALANCED_OFFSET);
+}
+
+float degToRadians(float deg) {
+  return deg * (PI / 180);
+}
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -38,8 +62,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
 
-
-
   pinMode(INDICATOR, OUTPUT);
   digitalWrite(INDICATOR, HIGH);
 
@@ -47,43 +69,19 @@ void setup() {
   if (!bno.begin(0x05)) {
     Serial.println("Inertial Sensor failed, or not present");
   } else {
-    
+
     bno.setExtCrystalUse(true);
-    
+
     Serial.println("Inertial Sensor present");
   }
-}
-
-
-// Given proportion acc/9.8 = y/1.5708 solve for y.
-// 90 degrees in rads is 1.5708
-float accToRadians(float acc) {
-  return 0.1603 * (acc - BALANCED_OFFSET);
-}
-
-float degToRadians(float deg) {
-  return deg * (PI / 180);
-}
-
-void leftEncoderEvent() {
-  motorLeft.encoderEvent();
-}
-
-void rightEncoderEvent() {
-  motorRight.encoderEvent();
 }
 
 void loop() {
   imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);  //Acceleration in meters per second squared
   imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE); //Angular velocity in radians per second
 
-  Serial.print(motorLeft.getDistance());
-  Serial.print(", ");
-  Serial.print(motorRight.getDistance());
-  Serial.print(", ");
-  Serial.print(accToRadians(Acceleration.z()));
-  Serial.print(", ");
-  Serial.println(degToRadians(-RotationalVelocity.y()));
+  Serial << motorLeft.getDistance() << ", " << motorRight.getDistance() << ", ";
+  Serial << accToRadians(Acceleration.z()) << ", " << degToRadians(-RotationalVelocity.y()) << '\n';
   delay(50);
 }
 
