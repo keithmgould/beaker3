@@ -39,6 +39,7 @@ ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1, RH_POWER);
 Estimator estimator(TIMESTEP);
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
+float newGain = 0;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
 
@@ -66,6 +67,16 @@ void reportError() {
     digitalWrite(INDICATOR, LOW);
     delay(300);
   }
+}
+
+void updatePower(float newGain){
+  if(newGain > 20){newGain = 20;}
+  if(newGain < -20){newGain = -20;}
+
+  float newPower = newGain / 20;
+
+  motorRight.updatePower(newPower);
+  motorLeft.updatePower(newPower);
 }
 
 float avgXPos() {
@@ -107,17 +118,16 @@ void setup() {
 }
 
 void loop() {
-  imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);  //Acceleration in meters per second squared
-  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE); //Angular velocity in radians per second
+  // Acceleration in meters per second squared
+  imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+
+  // Angular velocity in radians per second
+  // when ready here is gyro: degToRadians(-RotationalVelocity.y()
+  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
   currentTheta = accToRadians(Acceleration.z());
-
-  estimator.update(avgXPos(), currentTheta);
-  estimator.print();
-
-
-  // Serial << motorLeft.getDistance() << ", " << motorRight.getDistance() << ", ";
-  // Serial << accToRadians(Acceleration.z()) << ", " << degToRadians(-RotationalVelocity.y()) << '\n';
+  newGain = estimator.update(avgXPos(), currentTheta);
+  updatePower(newGain);
   delay(TIMESTEP);
 }
 

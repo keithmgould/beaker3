@@ -53,6 +53,7 @@ public:
          .1,  10000,10,    1,
          .1,  10,   100,   10;
 
+    K << -0.0491, -0.9333, 1.4423, 0.5630;
   }
 
   void init(){
@@ -65,23 +66,25 @@ public:
     kf.init(0, x0);
   }
 
-  void update(const float xPos, const float theta){
+  float update(const float xPos, const float theta){
     y << xPos, theta;
     kf.update(y);
+    gain = (K * kf.state())(0,0);
+    print();
+    return gain;
   }
 
   void print(){
-    Serial << "y: ";
-    Serial << ~y;
-    Serial.print(", x_hat");
-    Serial.print(": ");
-    Serial << ~kf.state() << '\n';
+    Serial << y(0,0) << ',' << y(1,0);
+    Serial << ',' << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
+    Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << ',';
+    Serial << gain << '\n';
   }
 
 private:
-  // double t;
+  float gain;
   double dt;
-
+  Matrix<1, MY_DIM_N> K; // LQR determined K
   Matrix<MY_DIM_M, 1> y; // estimated output
   Matrix<MY_DIM_N,MY_DIM_N> A; // System dynamics matrix
   Matrix<MY_DIM_M,MY_DIM_N> C; // Output matrix
