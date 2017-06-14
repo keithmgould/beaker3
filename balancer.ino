@@ -24,15 +24,21 @@
 #include "servoMotor.cpp"
 #include "estimator.cpp"
 
-// pins for the motor encoder inputs
+// pins for the motor power and encoders
 #define RH_ENCODER_A 2 // interupt pin
 #define RH_ENCODER_B 38
+#define RH_POWER 44
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
+#define LH_POWER 46
 
-ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
-ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
-Estimator est;
+#define TIMESTEP 100 // out of 1000 (ms)
+
+ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1, LH_POWER);
+ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1, RH_POWER);
+Estimator estimator(TIMESTEP);
+
+float currentTheta = 0; // can we do float() to declare instead of 0?
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
 
@@ -62,10 +68,18 @@ void reportError() {
   }
 }
 
+float avgXPos() {
+  return (motorLeft.getDistance() + motorRight.getDistance()) / 2.0;
+}
+
 void setup() {
+  pinMode(INDICATOR, OUTPUT);
+  // turn off indicator light while we setup
+  digitalWrite(INDICATOR, LOW);
+
   // Open serial communications
   // and wait for port to open:
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {}
 
   motorLeft.init();
@@ -86,8 +100,9 @@ void setup() {
     Serial.println("Inertial Sensor present");
   }
 
+  estimator.init();
+
   // Turn on indicator light because we are ready to rock.
-  pinMode(INDICATOR, OUTPUT);
   digitalWrite(INDICATOR, HIGH);
 }
 
@@ -95,9 +110,15 @@ void loop() {
   imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);  //Acceleration in meters per second squared
   imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE); //Angular velocity in radians per second
 
-  Serial << motorLeft.getDistance() << ", " << motorRight.getDistance() << ", ";
-  Serial << accToRadians(Acceleration.z()) << ", " << degToRadians(-RotationalVelocity.y()) << '\n';
-  delay(50);
+  currentTheta = accToRadians(Acceleration.z());
+
+  estimator.update(avgXPos(), currentTheta);
+  estimator.print();
+
+
+  // Serial << motorLeft.getDistance() << ", " << motorRight.getDistance() << ", ";
+  // Serial << accToRadians(Acceleration.z()) << ", " << degToRadians(-RotationalVelocity.y()) << '\n';
+  delay(TIMESTEP);
 }
 
 
