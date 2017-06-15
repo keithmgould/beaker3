@@ -33,9 +33,7 @@ Bc = [0;
 Cc = [1, 0, 0, 0;
      0, 0, 1, 0];
 
-
 Dc = [0; 0];
-
 
 sys_c = ss(Ac,Bc,Cc,Dc);
 
@@ -48,8 +46,6 @@ Bd = sys_d.b;
 Cd = sys_d.c;
 Dd = sys_d.d;
 
-
-
 % weights for states
 Q = [1, 0, 0,  0;
      0, 1, 0,  0;
@@ -60,3 +56,7 @@ Q = [1, 0, 0,  0;
 R = 1;
 
 Kd = dlqr(Ad, Bd, Q, R);
+
+dlmwrite('Ad_matrix.csv',Ad);
+dlmwrite('Bd_matrix.csv',Bd);
+dlmwrite('Kd_matrix.csv',Kd);
