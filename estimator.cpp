@@ -14,39 +14,21 @@ class Estimator
 
 public:
 
-  Estimator(int timestep){
-    dt = (float) timestep / 1000.0;
+  Estimator(){
+    dt = 0.05;
 
-    float MassWheels = 0.2,     // kg
-          MassRobot = 1.8,      // kg
-          Friction = 0.1,       // ?
-          Length = 0.209,       // m
-          Inertia = 0.06,       // ?
-          Gravity = 9.81;       // m/s/s
+    // Discrete A-Matrix
+    A << 1.0000, 0.0499, 0.0129, 0.0002,
+         0,      0.9948, 0.5218, 0.0129,
+         0,     -0.0003, 1.0687, 0.0511,
+         0,     -0.0141, 2.7775, 1.0687;
 
-    // helper variables
-    float Denom = Inertia * (MassWheels + MassRobot) + MassWheels * MassRobot * Length * Length;
-    float A22 = -(Inertia + MassRobot * Length * Length) * Friction / Denom;
-    float A23 = (MassRobot * MassRobot * Gravity * Length * Length) / Denom;
-    float A42 = -(MassRobot * Length * Friction) / Denom;
-    float A43 = MassRobot * Gravity * Length * (MassWheels + MassRobot) / Denom;
-    float B21 = (Inertia + MassRobot * Length * Length) / Denom;
-    float B41 = (MassRobot * Length) / Denom;
+    // Discrete B-Matrix
+    B << 0.0013,
+         0.0515,
+         0.0035,
+         0.1414;
 
-    // System Matrix
-    A << 0, 1, 0, 0,
-         0, A22, A23, 0,
-         0, 0, 0, 1,
-         0, A42, A43, 0;
-
-    // Input Matrix
-    B << 0,
-         B21,
-         0,
-         B41;
-
-    // Define the output matrix
-    // We only observe x (meters) and theta (radians).
     C << 1, 0, 0, 0,
          0, 0, 1, 0;
 
@@ -63,8 +45,8 @@ public:
     // Initial Estimate error covariance
     P0.Fill(0);
 
-    // LQR generated gain
-    K << -0.4472, -1.6725, 44.4373, 7.7887;
+    // DLQR generated gain
+    K << -0.4644, -1.4000, 35.1906, 6.8943;
   }
 
   void init(){
@@ -79,8 +61,7 @@ public:
   }
 
   float update(const float xPos, const float theta){
-    // y << xPos, theta;
-    y << 0, theta;
+    y << xPos, theta;
     kf.update(y, gain);
     gain = (-K * kf.state())(0,0);
     print();

@@ -32,11 +32,11 @@
 #define LH_ENCODER_B 40
 #define LH_POWER 46
 
-#define TIMESTEP 100 // out of 1000 (ms)
+#define TIMESTEP 50 // out of 1000 (ms)
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1, LH_POWER);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1, RH_POWER);
-Estimator estimator(TIMESTEP);
+Estimator estimator;
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
 float newGain = 0;
