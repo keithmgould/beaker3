@@ -3,7 +3,7 @@
 #include <Math.h>
 
 #define FULL_ROTATION_EDGE_EVENTS 600
-#define WHEEL_DIAMETER 84 // in MM
+#define WHEEL_DIAMETER .084 // in Meters
 
 class ServoMotor
 {
@@ -65,6 +65,7 @@ class ServoMotor
     edgeCount = 0;
   }
 
+  // in meters
   float getDistance() {
     return ((float) edgeCount / (float) FULL_ROTATION_EDGE_EVENTS) * 3.14159265 * (float) WHEEL_DIAMETER;
   }

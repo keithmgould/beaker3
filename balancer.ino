@@ -73,7 +73,9 @@ void updatePower(float newGain){
   if(newGain > 20){newGain = 20;}
   if(newGain < -20){newGain = -20;}
 
-  float newPower = newGain / 20;
+  // notice we are only going to 50% of motor power.
+  // 20/40
+  float newPower = newGain / 60;
 
   motorRight.updatePower(newPower);
   motorLeft.updatePower(newPower);

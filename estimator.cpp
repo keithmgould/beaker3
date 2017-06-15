@@ -1,16 +1,13 @@
 #include <BasicLinearAlgebra.h>
 #include <kalman.h>
 
-#define MY_DIM_N 4 // number of states (x, x_dot, theta, theta_dot)
-#define MY_DIM_M 2 // number of observations (x, theta)
-
 // NOTE: Soon we can change M to 3 since we can also observe theta_DOT
 // via gyrometer
 
 /*
   This class:
+    - stores the constants associated specifically with the beaker2 model
     - wraps and utilizes the kalman library
-    - stores the constants associated with the model
 */
 class Estimator
 {
@@ -20,56 +17,72 @@ public:
   Estimator(int timestep){
     dt = (float) timestep / 1000.0;
 
-    float MassWheels = 0.2,
-          MassRobot = 1.5,
-          Friction = 0.1,
-          Length = 0.3,
-          Inertia = 0.006,
-          Gravity = 9.81;
+    float MassWheels = 0.2,     // kg
+          MassRobot = 1.8,      // kg
+          Friction = 0.1,       // ?
+          Length = 0.209,       // m
+          Inertia = 0.06,       // ?
+          Gravity = 9.81;       // m/s/s
 
-    float  Denom = (Inertia * (MassWheels + MassRobot) + MassWheels * MassRobot * Length * Length);
+    // helper variables
+    float Denom = Inertia * (MassWheels + MassRobot) + MassWheels * MassRobot * Length * Length;
+    float A22 = -(Inertia + MassRobot * Length * Length) * Friction / Denom;
+    float A23 = (MassRobot * MassRobot * Gravity * Length * Length) / Denom;
+    float A42 = -(MassRobot * Length * Friction) / Denom;
+    float A43 = MassRobot * Gravity * Length * (MassWheels + MassRobot) / Denom;
+    float B21 = (Inertia + MassRobot * Length * Length) / Denom;
+    float B41 = (MassRobot * Length) / Denom;
 
     // System Matrix
     A << 0, 1, 0, 0,
-         0, -(Inertia + MassRobot * Length * Length) * Friction / Denom, MassRobot * MassRobot * Gravity * Length * Length / Denom, 0,
+         0, A22, A23, 0,
          0, 0, 0, 1,
-         0, -MassRobot * Length * Friction / Denom, MassRobot * Gravity * Length * (MassWheels + MassRobot) / Denom, 0;
+         0, A42, A43, 0;
+
+    // Input Matrix
+    B << 0,
+         B21,
+         0,
+         B41;
 
     // Define the output matrix
+    // We only observe x (meters) and theta (radians).
     C << 1, 0, 0, 0,
          0, 0, 1, 0;
 
     // Process noise covariance matrices
-    Q << .05, .05, .01, .01,
-         .05, .05, .01, .01,
-         .01,  .01,  .01, .01,
-         .01,  .01,  .01, .01;
+    Q << .01, 0, 0,  0,
+         0, .01, 0,  0,
+         0, 0, .01, 0,
+         0, 0, 0, .01;
 
     // Measurement noise covariance
-    R(0,0) = 5;
+    R << 0.00001, 0,
+         0, 0.01;
 
-    // Estimate error covariance
-    P << .1, .1,   .1,    .1,
-         .1,  10000,10,    1,
-         .1,  10,   100,   10;
+    // Initial Estimate error covariance
+    P0.Fill(0);
 
-    K << -0.0491, -0.9333, 1.4423, 0.5630;
+    // LQR generated gain
+    K << -0.4472, -1.6725, 44.4373, 7.7887;
   }
 
   void init(){
-    kf.BuildFilter(dt, A, C, Q, R, P);
+    kf.BuildFilter(dt, A, B, C, Q, R, P0);
 
     // Initial state: zeroed out.
-    Matrix<MY_DIM_N, 1> x0;
+    Matrix<4, 1> x0;
     x0 << 0, 0, 0, 0;
-    Serial << "x0: " <<  x0 << '\n';
     kf.init(0, x0);
+
+    Serial << "y(x), y(th), x^(x), x^(x.), x^(th), x^(th.), gain\n";
   }
 
   float update(const float xPos, const float theta){
-    y << xPos, theta;
-    kf.update(y);
-    gain = (K * kf.state())(0,0);
+    // y << xPos, theta;
+    y << 0, theta;
+    kf.update(y, gain);
+    gain = (-K * kf.state())(0,0);
     print();
     return gain;
   }
@@ -84,12 +97,13 @@ public:
 private:
   float gain;
   double dt;
-  Matrix<1, MY_DIM_N> K; // LQR determined K
-  Matrix<MY_DIM_M, 1> y; // estimated output
-  Matrix<MY_DIM_N,MY_DIM_N> A; // System dynamics matrix
-  Matrix<MY_DIM_M,MY_DIM_N> C; // Output matrix
-  Matrix<MY_DIM_N,MY_DIM_N> Q; // Process noise covariance
-  Matrix<MY_DIM_M,MY_DIM_M> R; // Measurement noise covariance
-  Matrix<MY_DIM_N,MY_DIM_N> P; // Estimate error covariance
-  KalmanFilter<MY_DIM_N, MY_DIM_M> kf;
+  Matrix<1,4> K;  // LQR determined K
+  Matrix<2,1> y; // estimated output
+  Matrix<4,4> A;  // System dynamics matrix
+  Matrix<4,1> B;  // System dynamics matrix
+  Matrix<2,4> C;  // Output matrix
+  Matrix<4,4> Q;  // Process noise covariance
+  Matrix<2,2> R;  // Measurement noise covariance
+  Matrix<4,4> P0; // Initial Estimate error covariance
+  KalmanFilter<4, 2> kf;
 };
