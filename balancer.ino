@@ -7,8 +7,8 @@
 
 // 90 degrees in rads is 1.5708
 // Given proportion acc/9.8 = y/1.5708 solve for y
-// yields wheel multiplier
-#define WHEEL_MULTIPLIER 0.1603
+// yields radian multiplier
+#define RADIAN_MULTIPLIER 0.1603
 
 // pi / 180, for degrees to radians
 #define PI_OVER_ONE_EIGHTY 0.017453292519943
@@ -52,7 +52,7 @@ void rightEncoderEvent() {
 }
 
 float accToRadians(float acc) {
-  return WHEEL_MULTIPLIER * (acc - BALANCED_OFFSET);
+  return RADIAN_MULTIPLIER * (acc - BALANCED_OFFSET);
 }
 
 float degToRadians(float deg) {
@@ -73,9 +73,7 @@ void updatePower(float newGain){
   if(newGain > 20){newGain = 20;}
   if(newGain < -20){newGain = -20;}
 
-  // notice we are only going to 50% of motor power.
-  // 20/40
-  float newPower = newGain / 60;
+  float newPower = newGain / 20;
 
   motorRight.updatePower(newPower);
   motorLeft.updatePower(newPower);

@@ -15,19 +15,17 @@ class Estimator
 public:
 
   Estimator(){
-    dt = 0.05;
-
     // Discrete A-Matrix
-    A << 1.0000, 0.0499, 0.0129, 0.0002,
-         0,      0.9948, 0.5218, 0.0129,
-         0,     -0.0003, 1.0687, 0.0511,
-         0,     -0.0141, 2.7775, 1.0687;
+    A <<  1,0.049872,0.01291,0.00021429,
+          0,0.99485,0.52181,0.01291,
+          0,-0.00034982,1.0687,0.05114,
+          0,-0.014139,2.7775,1.0687;
 
     // Discrete B-Matrix
-    B << 0.0013,
-         0.0515,
-         0.0035,
-         0.1414;
+    B << 0.0012819,
+          0.051532,
+          0.0034982,
+          0.14139;
 
     C << 1, 0, 0, 0,
          0, 0, 1, 0;
@@ -39,23 +37,23 @@ public:
          0, 0, 0, .01;
 
     // Measurement noise covariance
-    R << 0.00001, 0,
-         0, 0.01;
+    R << 0.0000001, 0,
+         0, 0.00004520629858;
 
     // Initial Estimate error covariance
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.4644, -1.4000, 35.1906, 6.8943;
+    K << -0.06834,-0.56392,34.419,4.8054;
   }
 
   void init(){
-    kf.BuildFilter(dt, A, B, C, Q, R, P0);
+    kf.BuildFilter(A, B, C, Q, R, P0);
 
     // Initial state: zeroed out.
     Matrix<4, 1> x0;
     x0 << 0, 0, 0, 0;
-    kf.init(0, x0);
+    kf.init(x0);
 
     Serial << "y(x), y(th), x^(x), x^(x.), x^(th), x^(th.), gain\n";
   }
@@ -77,7 +75,6 @@ public:
 
 private:
   float gain;
-  double dt;
   Matrix<1,4> K;  // LQR determined K
   Matrix<2,1> y; // estimated output
   Matrix<4,4> A;  // System dynamics matrix

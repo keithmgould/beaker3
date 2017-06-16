@@ -53,7 +53,7 @@ Q = [1, 0, 0,  0;
      0, 0, 0,  100];
 
 % weight for U
-R = 1;
+R = 100;
 
 Kd = dlqr(Ad, Bd, Q, R);
 
