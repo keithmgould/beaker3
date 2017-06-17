@@ -1,6 +1,8 @@
 #include <BasicLinearAlgebra.h>
 #include <kalman.h>
 
+#define PI 3.14159265359
+
 // NOTE: Soon we can change M to 3 since we can also observe theta_DOT
 // via gyrometer
 
@@ -38,21 +40,24 @@ public:
 
     // Measurement noise covariance
     R << 0.0000001, 0,
-         0, 0.00004520629858;
+         0, 0.01;
 
     // Initial Estimate error covariance
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.06834,-0.56392,34.419,4.8054;
+    K << -0.6761,-1.6635,37.3431,5.3427;
   }
 
   void init(){
     kf.BuildFilter(A, B, C, Q, R, P0);
 
+    // for now setpoint does not change
+    setPoint << 0, 0, PI, 0;
+
     // Initial state: zeroed out.
     Matrix<4, 1> x0;
-    x0 << 0, 0, 0, 0;
+    x0 << 0, 0, PI, 0;
     kf.init(x0);
 
     Serial << "y(x), y(th), x^(x), x^(x.), x^(th), x^(th.), gain\n";
@@ -61,7 +66,8 @@ public:
   float update(const float xPos, const float theta){
     y << xPos, theta;
     kf.update(y, gain);
-    gain = (-K * kf.state())(0,0);
+    setPointDelta = kf.state() - setPoint;
+    gain = (-K * setPointDelta)(0,0);
     print();
     return gain;
   }
@@ -75,6 +81,8 @@ public:
 
 private:
   float gain;
+  Matrix<4,1> setPoint; // desired state
+  Matrix<4,1> setPointDelta; // difference between state and setpoint
   Matrix<1,4> K;  // LQR determined K
   Matrix<2,1> y; // estimated output
   Matrix<4,4> A;  // System dynamics matrix

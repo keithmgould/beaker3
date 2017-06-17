@@ -48,12 +48,12 @@ Dd = sys_d.d;
 
 % weights for states
 Q = [1, 0, 0,  0;
-     0, 1, 0,  0;
-     0, 0, 10, 0;
-     0, 0, 0,  100];
+     0, 0, 0,  0;
+     0, 0, 1, 0;
+     0, 0, 0,  0];
 
 % weight for U
-R = 100;
+R = 1;
 
 Kd = dlqr(Ad, Bd, Q, R);
 

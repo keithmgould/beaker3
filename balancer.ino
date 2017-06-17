@@ -52,7 +52,7 @@ void rightEncoderEvent() {
 }
 
 float accToRadians(float acc) {
-  return RADIAN_MULTIPLIER * (acc - BALANCED_OFFSET);
+  return PI + RADIAN_MULTIPLIER * (acc - BALANCED_OFFSET);
 }
 
 float degToRadians(float deg) {
@@ -73,7 +73,7 @@ void updatePower(float newGain){
   if(newGain > 20){newGain = 20;}
   if(newGain < -20){newGain = -20;}
 
-  float newPower = newGain / 20;
+  float newPower = newGain / 40;
 
   motorRight.updatePower(newPower);
   motorLeft.updatePower(newPower);
