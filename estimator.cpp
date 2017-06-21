@@ -18,17 +18,19 @@ public:
 
   Estimator(){
     // Discrete A-Matrix
-    A <<  1,0.049872,0.01291,0.00021429,
-          0,0.99485,0.52181,0.01291,
-          0,-0.00034982,1.0687,0.05114,
-          0,-0.014139,2.7775,1.0687;
+    A << 1,0.02,-0.032364,-0.00021564,
+         0,1,-3.2406,-0.032364,
+         0,0,1.0079,0.020053,
+         0,0,0.79595,1.0079;
 
     // Discrete B-Matrix
-    B << 0.0012819,
-          0.051532,
-          0.0034982,
-          0.14139;
+    B << 0.087262,
+         8.7309,
+        -0.0087748,
+        -0.87864;
 
+
+    // only observe theta and phi
     C << 1, 0, 0, 0,
          0, 0, 1, 0;
 
@@ -46,28 +48,30 @@ public:
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.6761,-1.6635,37.3431,5.3427;
+    K << -0.040218,-0.05903,-6.3242,-1.2316;
   }
 
   void init(){
     kf.BuildFilter(A, B, C, Q, R, P0);
 
     // for now setpoint does not change
-    setPoint << 0, 0, PI, 0;
+    setPoint << 0, 0, 0, 0;
 
     // Initial state: zeroed out.
     Matrix<4, 1> x0;
-    x0 << 0, 0, PI, 0;
+    x0 << 0, 0, 0, 0;
     kf.init(x0);
 
-    Serial << "y(x), y(th), x^(x), x^(x.), x^(th), x^(th.), gain\n";
+    Serial << "A: " << '\n';
+    Serial << A << '\n';
+    Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
   }
 
   float update(const float xPos, const float theta){
     y << xPos, theta;
     kf.update(y, gain);
     setPointDelta = kf.state() - setPoint;
-    gain = (-K * setPointDelta)(0,0);
+    gain = (-K * kf.state())(0,0);
     print();
     return gain;
   }

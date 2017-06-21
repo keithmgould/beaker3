@@ -8,25 +8,25 @@ Inertia = 0.06;       % ?
 Gravity = 9.81;       % m/s/s
 
 % helper variables
-Denom = Inertia * (MassWheels + MassRobot) + MassWheels * MassRobot * Length * Length;
-A22 = -(Inertia + MassRobot * Length * Length) * Friction / Denom;
-A23 = (MassRobot * MassRobot * Gravity * Length * Length) / Denom;
-A42 = -(MassRobot * Length * Friction) / Denom;
-A43 = MassRobot * Gravity * Length * (MassWheels + MassRobot) / Denom;
-B21 = (Inertia + MassRobot * Length * Length) / Denom;
-B41 = (MassRobot * Length) / Denom;
+% Denom = Inertia * (MassWheels + MassRobot) + MassWheels * MassRobot * Length * Length;
+% A22 = -(Inertia + MassRobot * Length * Length) * Friction / Denom;
+% A23 = (MassRobot * MassRobot * Gravity * Length * Length) / Denom;
+% A42 = -(MassRobot * Length * Friction) / Denom;
+% A43 = MassRobot * Gravity * Length * (MassWheels + MassRobot) / Denom;
+% B21 = (Inertia + MassRobot * Length * Length) / Denom;
+% B41 = (MassRobot * Length) / Denom;
 
 % System Matrix
-Ac = [0, 1, 0, 0;
-     0, A22, A23, 0;
-     0, 0, 0, 1;
-     0, A42, A43, 0];
+% Ac = [0, 1, 0, 0;
+%      0, A22, A23, 0;
+%      0, 0, 0, 1;
+%      0, A42, A43, 0];
 
 % Input Matrix
-Bc = [0;
-     B21;
-     0;
-     B41];
+% Bc = [0;
+%      B21;
+%      0;
+%      B41];
 
 % Define the output matrix
 % We only observe x (meters) and theta (radians).
@@ -37,7 +37,9 @@ Dc = [0; 0];
 
 sys_c = ss(Ac,Bc,Cc,Dc);
 
-td = 50 / 1000; % seconds
+
+td = 20 / 1000; % 50 Hz
+
 sys_d = c2d(sys_c, td);
 
 % Extract Discrete Time State-Space Matrices
@@ -47,10 +49,10 @@ Cd = sys_d.c;
 Dd = sys_d.d;
 
 % weights for states
-Q = [1, 0, 0,  0;
-     0, 0, 0,  0;
+Q = [1, 0, 0, 0;
+     0, 0, 0, 0;
      0, 0, 1, 0;
-     0, 0, 0,  0];
+     0, 0, 0, 0];
 
 % weight for U
 R = 1;
