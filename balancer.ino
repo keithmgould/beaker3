@@ -32,16 +32,19 @@
 #define LH_ENCODER_B 40
 #define LH_POWER 8
 
-#define TIMESTEP 50 // out of 1000 (ms)
+#define TIMESTEP 50 // 20Hz. <=> 1000/50
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1, LH_POWER);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1, RH_POWER);
 Estimator estimator;
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
+float currentPhi = 0;
 float newGain = 0;
+long timeMarker = 0;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
+imu::Vector<3> Acceleration;
 
 void leftEncoderEvent() {
   motorLeft.encoderEvent();
@@ -51,8 +54,11 @@ void rightEncoderEvent() {
   motorRight.encoderEvent();
 }
 
+// "acceleration" to radians
+// sin(theta) = y / 9.8.
+// solve for theta
 float accToRadians(float acc) {
-  return PI + RADIAN_MULTIPLIER * (acc - BALANCED_OFFSET);
+  return asin((acc - BALANCED_OFFSET) / 9.8);
 }
 
 float degToRadians(float deg) {
@@ -77,10 +83,6 @@ void updatePower(float newGain){
 
   motorRight.updatePower(newPower);
   motorLeft.updatePower(newPower);
-}
-
-float avgXPos() {
-  return (motorLeft.getDistance() + motorRight.getDistance()) / 2.0;
 }
 
 void setup() {
@@ -111,22 +113,28 @@ void setup() {
     Serial.println("Inertial Sensor present");
   }
 
+  updatePower(0);
   estimator.init();
+  timeMarker = millis();
 
   // Turn on indicator light because we are ready to rock.
   digitalWrite(INDICATOR, HIGH);
 }
 
 void loop() {
+  // if((millis() - timeMarker) < TIMESTEP){return;}
+  // timeMarker = millis();
   // Acceleration in meters per second squared
-  imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  // Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  updatePower(0);
+  // // Angular velocity in radians per second
+  // // when ready here is gyro: degToRadians(-RotationalVelocity.y()
+  // imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
-  // Angular velocity in radians per second
-  // when ready here is gyro: degToRadians(-RotationalVelocity.y()
-  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-
-  currentTheta = accToRadians(Acceleration.z());
-  newGain = estimator.update(avgXPos(), currentTheta);
-  updatePower(newGain);
+  // currentPhi = motorLeft.getPhi();
+  // currentTheta = accToRadians(Acceleration.z());
+  // Serial << currentTheta << '\n';
+  // newGain = estimator.update(currentTheta, currentPhi);
+  // updatePower(newGain);
   delay(TIMESTEP);
 }

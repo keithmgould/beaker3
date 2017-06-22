@@ -1,8 +1,6 @@
 #include <BasicLinearAlgebra.h>
 #include <kalman.h>
 
-#define PI 3.14159265359
-
 // NOTE: Soon we can change M to 3 since we can also observe theta_DOT
 // via gyrometer
 
@@ -67,10 +65,9 @@ public:
     Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
   }
 
-  float update(const float xPos, const float theta){
-    y << xPos, theta;
+  float update(const float theta, const float phi){
+    y << theta, phi;
     kf.update(y, gain);
-    setPointDelta = kf.state() - setPoint;
     gain = (-K * kf.state())(0,0);
     print();
     return gain;

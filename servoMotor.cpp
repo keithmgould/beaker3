@@ -1,8 +1,9 @@
 #include "Arduino.h"
 #include <Math.h>
 
+#define PI 3.14159265359
 #define FULL_ROTATION_EDGE_EVENTS 600
-#define WHEEL_DIAMETER .084 // in Meters
+#define CLICKS_TO_RADIANS 2 * PI / FULL_ROTATION_EDGE_EVENTS
 
 class ServoMotor
 {
@@ -14,11 +15,13 @@ class ServoMotor
   void tickRight()
   {
     edgeCount += tickDirection;
+    if(edgeCount >= 6000){edgeCount = 0;}
   }
 
   void tickLeft()
   {
     edgeCount -= tickDirection;
+    if(edgeCount <= 6000){edgeCount = 0;}
   }
 
   //-------------------------------------------------------------------
@@ -62,9 +65,9 @@ class ServoMotor
     edgeCount = 0;
   }
 
-  // in meters
-  float getDistance() {
-    return ((float) edgeCount / (float) FULL_ROTATION_EDGE_EVENTS) * 3.14159265 * (float) WHEEL_DIAMETER;
+  // in radians
+  float getPhi() {
+    return (float) edgeCount * (float) CLICKS_TO_RADIANS;
   }
 
   void encoderEvent() {
