@@ -27,10 +27,10 @@
 // pins for the motor power and encoders
 #define RH_ENCODER_A 2 // interupt pin
 #define RH_ENCODER_B 38
-#define RH_POWER 46
+#define RH_POWER 7
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
-#define LH_POWER 44
+#define LH_POWER 8
 
 #define TIMESTEP 50 // out of 1000 (ms)
 
@@ -130,12 +130,3 @@ void loop() {
   updatePower(newGain);
   delay(TIMESTEP);
 }
-
-
-
-
-
-
-
-
-

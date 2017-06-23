@@ -1,5 +1,4 @@
 #include "Arduino.h"
-#include <Servo.h>
 #include <Math.h>
 
 #define FULL_ROTATION_EDGE_EVENTS 600
@@ -9,7 +8,6 @@ class ServoMotor
 {
   private:
 
-  Servo servo;
   int edgeCount;
   int firstEncoderPin, secondEncoderPin, driverPin, tickDirection;
 
@@ -41,25 +39,24 @@ class ServoMotor
   // full reverse: -1
   // stop: 0
 
-  // convert this to the Sabertooth Servo values:
-  // full forward: 180
-  // full reverse: 0
-  // stop: 90
+  // Convert to PWM.
+  // 188 is full stop
+  // 208 is full forward
+  // 168 is full reverse
   void updatePower(float power)
   {
     // safety first.
     if(power > 1) { power = 1; }
     if(power < -1) { power = -1; }
 
-    float mult = power * 90;
-    int newPower = 90 + static_cast<int>(mult);
+    float mult = static_cast<int>(power * 20);
+    int newPower = 188 + mult;
 
-    servo.write(newPower);
+    analogWrite(driverPin, newPower);
   }
 
   void init()
   {
-    servo.attach(driverPin, 1000, 2000);
     pinMode(firstEncoderPin, INPUT_PULLUP); // interupt
     pinMode(secondEncoderPin, INPUT_PULLUP);
     edgeCount = 0;
