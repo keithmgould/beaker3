@@ -85,6 +85,10 @@ void updatePower(float newGain){
   motorLeft.updatePower(newPower);
 }
 
+float avgPhi() {
+  return (motorLeft.getPhi() + motorRight.getPhi()) / 2;
+}
+
 void setup() {
   pinMode(INDICATOR, OUTPUT);
   // turn off indicator light while we setup
@@ -122,18 +126,18 @@ void setup() {
 }
 
 void loop() {
-  // if((millis() - timeMarker) < TIMESTEP){return;}
-  // timeMarker = millis();
+  if((millis() - timeMarker) < TIMESTEP){return;}
+  timeMarker = millis();
   // Acceleration in meters per second squared
-  // Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
   updatePower(0);
   // // Angular velocity in radians per second
   // // when ready here is gyro: degToRadians(-RotationalVelocity.y()
   // imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
-  // currentPhi = motorLeft.getPhi();
-  // currentTheta = accToRadians(Acceleration.z());
-  // Serial << currentTheta << '\n';
+  currentPhi = avgPhi();
+  currentTheta = accToRadians(Acceleration.z());
+  Serial << currentTheta << '\n';
   // newGain = estimator.update(currentTheta, currentPhi);
   // updatePower(newGain);
   delay(TIMESTEP);
