@@ -10,6 +10,8 @@
 // yields radian multiplier
 #define RADIAN_MULTIPLIER 0.1603
 
+#define MAX_TILT 0.20 // in radians. Roughly 10 degrees
+
 // pi / 180, for degrees to radians
 #define PI_OVER_ONE_EIGHTY 0.017453292519943
 
@@ -27,10 +29,10 @@
 // pins for the motor power and encoders
 #define RH_ENCODER_A 2 // interupt pin
 #define RH_ENCODER_B 38
-#define RH_POWER 7
+#define RH_POWER 6
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
-#define LH_POWER 8
+#define LH_POWER 7
 
 #define TIMESTEP 50 // 20Hz. <=> 1000/50
 
@@ -65,7 +67,14 @@ float degToRadians(float deg) {
   return deg * PI_OVER_ONE_EIGHTY;
 }
 
-void reportError() {
+void updatePower(float newGain){
+  motorRight.updatePower(newGain);
+  motorLeft.updatePower(newGain);
+}
+
+// kill motors and blink status indicator
+void errorMode() {
+  updatePower(0);
   pinMode(INDICATOR, OUTPUT);
   while(true){
     digitalWrite(INDICATOR, HIGH);
@@ -73,16 +82,6 @@ void reportError() {
     digitalWrite(INDICATOR, LOW);
     delay(300);
   }
-}
-
-void updatePower(float newGain){
-  if(newGain > 20){newGain = 20;}
-  if(newGain < -20){newGain = -20;}
-
-  float newPower = newGain / 40;
-
-  motorRight.updatePower(newPower);
-  motorLeft.updatePower(newPower);
 }
 
 float avgPhi() {
@@ -101,7 +100,7 @@ void setup() {
 
   motorLeft.init();
   motorRight.init();
-  delay(100);
+  updatePower(0);
 
   attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
@@ -109,36 +108,36 @@ void setup() {
   //Check to see if the Inertial Sensor is wired correctly and functioning normally
   if (!bno.begin(0x05)) {
     Serial.println("Inertial Sensor failed, or not present");
-    reportError();
+    errorMode();
   } else {
-
     bno.setExtCrystalUse(true);
-
-    Serial.println("Inertial Sensor present");
   }
 
-  updatePower(0);
   estimator.init();
-  timeMarker = millis();
 
-  // Turn on indicator light because we are ready to rock.
+  delay(1000);
+
+  // Turn on indicator light because we are ready to burn rubber.
   digitalWrite(INDICATOR, HIGH);
+
+  //starting gun!
+  timeMarker = millis();
 }
 
 void loop() {
   if((millis() - timeMarker) < TIMESTEP){return;}
   timeMarker = millis();
+
   // Acceleration in meters per second squared
   Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-  updatePower(0);
+
   // // Angular velocity in radians per second
   // // when ready here is gyro: degToRadians(-RotationalVelocity.y()
   // imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
   currentPhi = avgPhi();
   currentTheta = accToRadians(Acceleration.z());
-  Serial << currentTheta << '\n';
-  // newGain = estimator.update(currentTheta, currentPhi);
-  // updatePower(newGain);
-  delay(TIMESTEP);
+  if(abs(currentTheta) >  MAX_TILT) { errorMode(); }
+  newGain = estimator.update(currentTheta, currentPhi);
+  updatePower(newGain);
 }

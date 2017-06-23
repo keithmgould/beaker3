@@ -44,15 +44,15 @@ class ServoMotor
 
   // Convert to PWM.
   // 188 is full stop
-  // 208 is full forward
-  // 168 is full reverse
+  // 228 is full forward
+  // 148 is full reverse
   void updatePower(float power)
   {
     // safety first.
     if(power > 1) { power = 1; }
     if(power < -1) { power = -1; }
 
-    float mult = static_cast<int>(power * 20);
+    int mult = static_cast<int>(power * 20);
     int newPower = 188 + mult;
 
     analogWrite(driverPin, newPower);

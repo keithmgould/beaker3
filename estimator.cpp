@@ -59,25 +59,22 @@ public:
     Matrix<4, 1> x0;
     x0 << 0, 0, 0, 0;
     kf.init(x0);
-
-    Serial << "A: " << '\n';
-    Serial << A << '\n';
-    Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
   }
 
   float update(const float theta, const float phi){
-    y << theta, phi;
-    kf.update(y, gain);
+    y << theta, 0; //phi;
+    kf.update(y, 0); //gain);
     gain = (-K * kf.state())(0,0);
     print();
-    return gain;
+    return 0;
+    //return gain;
   }
 
   void print(){
-    Serial << y(0,0) << ',' << y(1,0);
-    Serial << ',' << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
-    Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << ',';
-    Serial << gain << '\n';
+    // Serial << y(0,0) << ',' << y(1,0);
+    Serial << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
+    Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << '\n';
+    // Serial << gain << '\n';
   }
 
 private:
