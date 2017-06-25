@@ -33,6 +33,13 @@ class ServoMotor
     tickDirection = tickDirectionArg;
   }
 
+  // static void balancedPower(ServoMotor& servoLeft, ServoMotor& servoRight, float gain){
+  //   float leftGain = gain * (servoRight.getDistance() / servoLeft.getDistance());
+  //   float rightGain = gain * (servoLeft.getDistance() / servoRight.getDistance());
+  //   servoLeft.updatePower(leftGain);
+  //   servoRight.updatePower(rightGain);
+  // }
+
   //===========================================
   // API:
   // full forward: 1

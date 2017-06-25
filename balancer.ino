@@ -42,7 +42,6 @@ ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1, RH_POWER);
 Estimator estimator;
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
-float newGain = 0;
 long timeMarker = 0;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
@@ -70,11 +69,31 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
+  float leftGain = 0;
+  float rightGain = 0;
+
+  float rightDistance = abs(motorRight.getDistance());
+  float leftDistance = abs(motorLeft.getDistance());
+
+  // safety first
   if(newGain > 1){newGain = 1;}
   if(newGain < -1){newGain = -1;}
 
-  motorRight.updatePower(newGain);
-  motorLeft.updatePower(newGain);
+  if(rightDistance == leftDistance ){
+    leftGain = newGain;
+    rightGain = newGain;
+  }else if(rightDistance > leftDistance){
+    rightGain = abs(leftDistance / rightDistance) * newGain;
+    leftGain = newGain;
+  }else{
+    rightGain = newGain;
+    leftGain = abs(rightDistance / leftDistance) * newGain;
+  }
+
+  Serial << rightDistance << ',' << leftDistance << ',' << rightGain << ',' << leftGain << '\n';
+
+  motorLeft.updatePower(leftGain);
+  motorRight.updatePower(rightGain);
 }
 
 // kill motors and blink status indicator
@@ -141,6 +160,6 @@ void loop() {
 
   currentTheta = accToRadians(Acceleration.z());
   // if(abs(currentTheta) >  MAX_TILT) { errorMode("max tilt."); }
-  newGain = estimator.update(avgXPos(),currentTheta);
+  float newGain = estimator.update(avgXPos(),currentTheta);
   updatePower(newGain);
 }
