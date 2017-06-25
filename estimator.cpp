@@ -1,6 +1,8 @@
 #include <BasicLinearAlgebra.h>
 #include <kalman.h>
 
+#define STATES 4
+#define OBVS 2
 #define PI 3.14159265359
 
 // NOTE: Soon we can change M to 3 since we can also observe theta_DOT
@@ -76,24 +78,33 @@ public:
     return gain;
   }
 
+  void printStates(){
+    for(int n = 0; n < STATES; n++){
+      Serial << kf.state()(n,0);
+      if(n < STATES - 1){Serial << ',';}
+    }
+    Serial << '\n';
+  }
+
   void print(){
     Serial << y(0,0) << ',' << y(1,0);
-    Serial << ',' << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
-    Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << ',';
+    printStates();
+    // Serial << ',' << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
+    // Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << ',';
     Serial << gain << '\n';
   }
 
 private:
   float gain;
-  Matrix<4,1> setPoint; // desired state
-  Matrix<4,1> setPointDelta; // difference between state and setpoint
-  Matrix<1,4> K;  // LQR determined K
-  Matrix<2,1> y; // estimated output
-  Matrix<4,4> A;  // System dynamics matrix
-  Matrix<4,1> B;  // System dynamics matrix
-  Matrix<2,4> C;  // Output matrix
-  Matrix<4,4> Q;  // Process noise covariance
-  Matrix<2,2> R;  // Measurement noise covariance
-  Matrix<4,4> P0; // Initial Estimate error covariance
-  KalmanFilter<4, 2> kf;
+  Matrix<STATES,1> setPoint; // desired state
+  Matrix<STATES,1> setPointDelta; // difference between state and setpoint
+  Matrix<1,STATES> K;  // LQR determined K
+  Matrix<OBVS,1> y; // estimated output
+  Matrix<STATES,STATES> A;  // System dynamics matrix
+  Matrix<STATES,1> B;  // System dynamics matrix
+  Matrix<OBVS,STATES> C;  // Output matrix
+  Matrix<STATES,STATES> Q;  // Process noise covariance
+  Matrix<OBVS,OBVS> R;  // Measurement noise covariance
+  Matrix<STATES,STATES> P0; // Initial Estimate error covariance
+  KalmanFilter<STATES, OBVS> kf;
 };
