@@ -9,6 +9,10 @@
     - stores the constants associated specifically with the beaker2 model
     - wraps and utilizes the kalman library
 */
+
+#define NUM_STATES 4
+#define NUM_OBVS 2
+
 class Estimator
 {
 
@@ -39,8 +43,8 @@ public:
          0, 0, 0, .01;
 
     // Measurement noise covariance
-    R << 0.0000001, 0,
-         0, 0.01;
+    R << 0.001, 0,
+         0, 0.000001;
 
     // Initial Estimate error covariance
     P0.Fill(0);
@@ -62,32 +66,40 @@ public:
   }
 
   float update(const float theta, const float phi){
-    y << theta, 0; //phi;
-    kf.update(y, 0); //gain);
+    y << theta, phi;
+    kf.update(y, gain);
     gain = (-K * kf.state())(0,0);
     print();
-    return 0;
-    //return gain;
+    return gain;
+  }
+
+  void printStates(){
+    for(int n = 0; n < NUM_STATES; n++){
+      Serial << kf.state()(0,0);
+      if(n < NUM_STATES - 1){
+        Serial << ',';
+      }
+    }
   }
 
   void print(){
-    // Serial << y(0,0) << ',' << y(1,0);
+    Serial << y(0,0) << ',' << y(1,0);
     Serial << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
-    Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << '\n';
-    // Serial << gain << '\n';
+    Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << ',';
+    Serial << gain << '\n';
   }
 
 private:
   float gain;
-  Matrix<4,1> setPoint; // desired state
-  Matrix<4,1> setPointDelta; // difference between state and setpoint
-  Matrix<1,4> K;  // LQR determined K
-  Matrix<2,1> y; // estimated output
-  Matrix<4,4> A;  // System dynamics matrix
-  Matrix<4,1> B;  // System dynamics matrix
-  Matrix<2,4> C;  // Output matrix
-  Matrix<4,4> Q;  // Process noise covariance
-  Matrix<2,2> R;  // Measurement noise covariance
-  Matrix<4,4> P0; // Initial Estimate error covariance
-  KalmanFilter<4, 2> kf;
+  Matrix<NUM_STATES,1> setPoint; // desired state
+  Matrix<NUM_STATES,1> setPointDelta; // difference between state and setpoint
+  Matrix<1,NUM_STATES> K;  // LQR determined K
+  Matrix<NUM_OBVS,1> y; // estimated output
+  Matrix<NUM_STATES,NUM_STATES> A;  // System dynamics matrix
+  Matrix<NUM_STATES,1> B;  // System dynamics matrix
+  Matrix<NUM_OBVS,NUM_STATES> C;  // Output matrix
+  Matrix<NUM_STATES,NUM_STATES> Q;  // Process noise covariance
+  Matrix<NUM_OBVS,NUM_OBVS> R;  // Measurement noise covariance
+  Matrix<NUM_STATES,NUM_STATES> P0; // Initial Estimate error covariance
+  KalmanFilter<NUM_STATES, NUM_OBVS> kf;
 };

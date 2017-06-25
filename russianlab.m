@@ -1,4 +1,4 @@
-clear; clc;
+clear;
 
 % MassWheels = 0.2;     % kg
 % MassRobot = 1.8;      % kg
@@ -31,7 +31,7 @@ Q=[5 0 0 0;
 
 R=1500;
 
-[K,S,e]=lqr(A,B,Q,R);
+% [K,S,e]=lqr(A,B,Q,R);
 
 %------------------------
 C = [1 0 0 0;
@@ -46,6 +46,8 @@ ss_discrete = c2d(ss_cont, ts);
 
 Ad = ss_discrete.a;
 Bd = ss_discrete.b;
+Cd = ss_discrete.c;
+Dd = ss_discrete.d;
 
 [Kd, Sd, ed] = dlqr(Ad, Bd, Q, R);
 
@@ -54,3 +56,19 @@ dlmwrite('Ad_matrix.csv',Ad);
 dlmwrite('Bd_matrix.csv',Bd);
 dlmwrite('Kd_matrix.csv',Kd);
 
+Acl = [(Ad - Bd * Kd)];
+Bcl = [Bd];
+Ccl = [Cd];
+Dcl = [Dd];
+
+sys_cl = ss(Acl, Bcl, Ccl, Dcl);
+x0 = [0 0.02 0 0];
+
+t = 0:ts:10;
+initial(sys_cl,x0,t);
+
+
+% figure;
+% plot(t,y(:,1),t,y(:,2));
+% legend('th','thDot','phi','phiDot')
+% title('Response with Digital LQR Control')
