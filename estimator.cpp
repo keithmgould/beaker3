@@ -20,16 +20,16 @@ public:
 
   Estimator(){
     // Discrete A-Matrix
-    A << 1,0.02,-0.032364,-0.00021564,
-         0,1,-3.2406,-0.032364,
-         0,0,1.0079,0.020053,
-         0,0,0.79595,1.0079;
+    A << 1,0.0054522,0.00037997,3.0894e-06,
+         0,0.027915,0.025443,0.00037997,
+         0,-0.026756,1.0063,0.020043,
+         0,-1.7916,0.60408,1.0063;
 
     // Discrete B-Matrix
-    B << 0.087262,
-         8.7309,
-        -0.0087748,
-        -0.87864;
+    B << 0.019094,
+         1.2759,
+         0.035118,
+         2.3515;
 
 
     // only observe theta and phi
@@ -43,36 +43,30 @@ public:
          0, 0, 0, .01;
 
     // Measurement noise covariance
-    R << 0.0000001, 0,
-         0, 0.01;
+    R << 0.0001, 0,
+         0, 0.1;
 
     // Initial Estimate error covariance
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.040218,-0.05903,-6.3242,-1.2316;
+    K << -0.95576,-1.7539,5.5262,0.98597;
   }
 
   void init(){
     kf.BuildFilter(A, B, C, Q, R, P0);
-
-    // for now setpoint does not change
-    setPoint << 0, 0, 0, 0;
 
     // Initial state: zeroed out.
     Matrix<4, 1> x0;
     x0 << 0, 0, 0, 0;
     kf.init(x0);
 
-    Serial << "A: " << '\n';
-    Serial << A << '\n';
     Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
   }
 
   float update(const float xPos, const float theta){
     y << xPos, theta;
     kf.update(y, gain);
-    setPointDelta = kf.state() - setPoint;
     gain = (-K * kf.state())(0,0);
     print();
     return gain;
@@ -80,24 +74,18 @@ public:
 
   void printStates(){
     for(int n = 0; n < STATES; n++){
-      Serial << kf.state()(n,0);
-      if(n < STATES - 1){Serial << ',';}
+      Serial << kf.state()(n,0) << ',';
     }
-    Serial << '\n';
   }
 
   void print(){
-    Serial << y(0,0) << ',' << y(1,0);
+    Serial << y(0,0) << ',' << y(1,0) << ',';
     printStates();
-    // Serial << ',' << kf.state()(0,0) << ',' << kf.state()(1,0) << ',';
-    // Serial << kf.state()(2,0) << ',' << kf.state()(3,0) << ',';
     Serial << gain << '\n';
   }
 
 private:
   float gain;
-  Matrix<STATES,1> setPoint; // desired state
-  Matrix<STATES,1> setPointDelta; // difference between state and setpoint
   Matrix<1,STATES> K;  // LQR determined K
   Matrix<OBVS,1> y; // estimated output
   Matrix<STATES,STATES> A;  // System dynamics matrix

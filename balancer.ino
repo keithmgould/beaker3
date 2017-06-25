@@ -10,6 +10,9 @@
 // yields radian multiplier
 #define RADIAN_MULTIPLIER 0.1603
 
+// in radians. Roughly 30 degrees
+#define MAX_TILT 0.78
+
 // pi / 180, for degrees to radians
 #define PI_OVER_ONE_EIGHTY 0.017453292519943
 
@@ -27,10 +30,10 @@
 // pins for the motor power and encoders
 #define RH_ENCODER_A 2 // interupt pin
 #define RH_ENCODER_B 38
-#define RH_POWER 7
+#define RH_POWER 6
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
-#define LH_POWER 8
+#define LH_POWER 7
 
 #define TIMESTEP 50 // out of 1000 (ms)
 
@@ -40,6 +43,7 @@ Estimator estimator;
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
 float newGain = 0;
+long timeMarker = 0;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
 
@@ -51,15 +55,29 @@ void rightEncoderEvent() {
   motorRight.encoderEvent();
 }
 
+// "acceleration" to radians
+// sin(theta) = y / 9.8.
+// solve for theta
 float accToRadians(float acc) {
-  return PI + RADIAN_MULTIPLIER * (acc - BALANCED_OFFSET);
+  return asin((acc - BALANCED_OFFSET) / 9.8);
 }
 
 float degToRadians(float deg) {
   return deg * PI_OVER_ONE_EIGHTY;
 }
 
-void reportError() {
+void updatePower(float newGain){
+  if(newGain > 1){newGain = 1;}
+  if(newGain < -1){newGain = -1;}
+
+  motorRight.updatePower(newGain);
+  motorLeft.updatePower(newGain);
+}
+
+// kill motors and blink status indicator
+void errorMode(const char* input) {
+  Serial.println(input);
+  updatePower(0);
   pinMode(INDICATOR, OUTPUT);
   while(true){
     digitalWrite(INDICATOR, HIGH);
@@ -67,16 +85,6 @@ void reportError() {
     digitalWrite(INDICATOR, LOW);
     delay(300);
   }
-}
-
-void updatePower(float newGain){
-  if(newGain > 20){newGain = 20;}
-  if(newGain < -20){newGain = -20;}
-
-  float newPower = newGain / 40;
-
-  motorRight.updatePower(newPower);
-  motorLeft.updatePower(newPower);
 }
 
 float avgXPos() {
@@ -103,7 +111,7 @@ void setup() {
   //Check to see if the Inertial Sensor is wired correctly and functioning normally
   if (!bno.begin(0x05)) {
     Serial.println("Inertial Sensor failed, or not present");
-    reportError();
+    errorMode("could not find IMU.");
   } else {
 
     bno.setExtCrystalUse(true);
@@ -118,15 +126,18 @@ void setup() {
 }
 
 void loop() {
+  if((millis() - timeMarker) < TIMESTEP){return;}
+  timeMarker = millis();
+
   // Acceleration in meters per second squared
   imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
 
-  // Angular velocity in radians per second
-  // when ready here is gyro: degToRadians(-RotationalVelocity.y()
-  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+  // // Angular velocity in radians per second
+  // // when ready here is gyro: degToRadians(-RotationalVelocity.y()
+  // imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
   currentTheta = accToRadians(Acceleration.z());
-  newGain = estimator.update(avgXPos(), currentTheta);
+  // if(abs(currentTheta) >  MAX_TILT) { errorMode("max tilt."); }
+  newGain = estimator.update(avgXPos(),currentTheta);
   updatePower(newGain);
-  delay(TIMESTEP);
 }
