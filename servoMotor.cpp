@@ -49,7 +49,7 @@ class ServoMotor
     if(power > 1) { power = 1; }
     if(power < -1) { power = -1; }
 
-    float mult = static_cast<int>(power * 30);
+    float mult = static_cast<int>(power * 40);
     int newPower = 188 + mult;
 
     analogWrite(driverPin, newPower);

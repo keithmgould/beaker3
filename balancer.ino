@@ -59,7 +59,10 @@ void rightEncoderEvent() {
 // sin(theta) = y / 9.8.
 // solve for theta
 float accToRadians(float acc) {
-  return asin((acc - BALANCED_OFFSET) / 9.8);
+  float theta = (acc - BALANCED_OFFSET) / 9.8;
+  if(theta < -1) { theta = -1; }
+  if(theta > 1) { theta = 1; }
+  return asin(theta);
 }
 
 float degToRadians(float deg) {

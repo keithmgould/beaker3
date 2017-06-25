@@ -1,10 +1,10 @@
 clear; clc;
 %% Two-Wheeled Inverted Pendulum Controller Design
-% 
+%
 % For Sumission:    Matlab & Simulink Low Cost Hardware Challenge
 % Author:           James Megariotis
 %
-% This File creates a continuous time state-space model of the 2 wheeled 
+% This File creates a continuous time state-space model of the 2 wheeled
 % inverted pendulum robot system where the input is the applied voltage.
 % This model is them converted to a discrete time state-space model to
 % match the timestep specified in the simulink model.
@@ -18,10 +18,10 @@ clear; clc;
 
 % Declare Constant Values
 
-mp=1.25;            % Mass of the pendulum
-mw=0.17;            % Mass of the wheel
-L=0.18;             % Length to Center of Gravity
-r=0.045;            % Radius of the wheel
+mp=1.8;            % Mass of the pendulum
+mw=0.2;            % Mass of the wheel
+L=0.181;             % Length to Center of Gravity
+r=0.042;            % Radius of the wheel
 ip=0.049;           % inertia of the pendulum around the wheel axis
 iw=0.000172125;     % inertia of the wheel around the wheel axis
 R=0.0024;           % The resistance of the DC Motor
@@ -80,20 +80,23 @@ D = sys_d.d;
 
 % State Weights for Q weight matrix (Assigned arbitrarily/trial and error)
 
-w = 2;          % x state variable weight
-x=0.1;          % xDot state variable weight
-y =10;          % phi state variable weight
-z=0.1;          % phiDot state variable weight
+w = 1;            % x state variable weight
+x = 1;          % xDot state variable weight
+y = 10;           % phi state variable weight
+z = 100;            % phiDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
 
-Q = [w 0 0 0;0 x 0 0;0 0 y 0;0 0 0 z];
+Q = [w 0 0 0;
+     0 x 0 0;
+     0 0 y 0;
+     0 0 0 z];
 
 % Assign R value for LQR input weight
 
 R = 1;
 
-% Find LQR gain Matrix K and new poles e 
+% Find LQR gain Matrix K and new poles e
 
 [K,S,e] = dlqr(A,B,Q,R);
 
