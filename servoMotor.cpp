@@ -17,12 +17,12 @@ class ServoMotor
 
   void tickRight()
   {
-    edgeCount += tickDirection;
+    edgeCount -= tickDirection;
   }
 
   void tickLeft()
   {
-    edgeCount -= tickDirection;
+    edgeCount += tickDirection;
   }
 
   //-------------------------------------------------------------------
