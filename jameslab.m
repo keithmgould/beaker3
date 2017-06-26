@@ -22,8 +22,8 @@ mp=1.8;            % Mass of the pendulum
 mw=0.2;            % Mass of the wheel
 L=0.181;             % Length to Center of Gravity
 r=0.042;            % Radius of the wheel
-ip=0.049;           % inertia of the pendulum around the wheel axis
-iw=0.000172125;     % inertia of the wheel around the wheel axis
+ip=0.069;           % inertia of the pendulum around the wheel axis. I = (1/3)ML^2
+iw=0.0001764;     % inertia of the wheel around the wheel axis
 R=0.0024;           % The resistance of the DC Motor
 ke=0.0342857;       % Voltage constant for the DC Motor
 km=0.017;           % Motor Torque Constant of the DC Motor
@@ -80,10 +80,10 @@ D = sys_d.d;
 
 % State Weights for Q weight matrix (Assigned arbitrarily/trial and error)
 
-w = 1;            % x state variable weight
-x = 1;          % xDot state variable weight
-y = 10;           % phi state variable weight
-z = 100;            % phiDot state variable weight
+w = 1000;            % x state variable weight
+x = 1000;          % xDot state variable weight
+y = 1000;           % phi state variable weight
+z = 1000;            % phiDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
 
@@ -94,7 +94,7 @@ Q = [w 0 0 0;
 
 % Assign R value for LQR input weight
 
-R = 1;
+R = .000001;
 
 % Find LQR gain Matrix K and new poles e
 

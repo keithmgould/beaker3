@@ -31,8 +31,6 @@ public:
          0.041988,
          2.843;
 
-
-
     // only observe theta and phi
     C << 1, 0, 0, 0,
          0, 0, 1, 0;
@@ -40,18 +38,18 @@ public:
     // Process noise covariance matrices
     Q << .001, 0, 0,  0,
          0, .001, 0,  0,
-         0, 0, .01,  0,
-         0, 0, 0, .01;
+         0, 0, .0001,  0,
+         0, 0, 0, .0001;
 
     // Measurement noise covariance
-    R << 0.01, 0,
-         0, 0.5;
+    R << 0.5, 0,
+         0, 1;
 
     // Initial Estimate error covariance
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.034266,-0.89682,1.1501,0.39275;
+    K << -0.35943,-1.3537,3.3644,0.72339;
   }
 
   void init(){
@@ -62,7 +60,7 @@ public:
     x0 << 0, 0, 0, 0;
     kf.init(x0);
 
-    Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
+    // Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
   }
 
   float update(const float xPos, const float theta){

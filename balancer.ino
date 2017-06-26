@@ -19,11 +19,6 @@
 // LED on side of robot
 #define INDICATOR 36
 
-// Motor Encoder constants
-// (define these before including servoMotor.cpp)
-#define FULL_ROTATION_EDGE_EVENTS 600
-#define WHEEL_DIAMETER 84 // in MM
-
 #include "servoMotor.cpp"
 #include "estimator.cpp"
 
@@ -72,25 +67,31 @@ void updatePower(float newGain){
   float leftGain = 0;
   float rightGain = 0;
 
-  float rightDistance = abs(motorRight.getDistance());
-  float leftDistance = abs(motorLeft.getDistance());
+  float rightAngVel = abs(motorRight.getAngularVelocity());
+  float leftAngVel = abs(motorLeft.getAngularVelocity());
 
   // safety first
   if(newGain > 1){newGain = 1;}
   if(newGain < -1){newGain = -1;}
 
-  if(rightDistance == leftDistance ){
+  if(rightAngVel == leftAngVel ){
     leftGain = newGain;
     rightGain = newGain;
-  }else if(rightDistance > leftDistance){
-    rightGain = abs(leftDistance / rightDistance) * newGain;
+  }else if(rightAngVel > leftAngVel){
+    rightGain = abs(leftAngVel / rightAngVel) * newGain;
     leftGain = newGain;
   }else{
     rightGain = newGain;
-    leftGain = abs(rightDistance / leftDistance) * newGain;
+    leftGain = abs(rightAngVel / leftAngVel) * newGain;
   }
 
-  Serial << rightDistance << ',' << leftDistance << ',' << rightGain << ',' << leftGain << '\n';
+  Serial.print(rightAngVel, 5);
+  Serial.print(',');
+  Serial.print(leftAngVel, 5);
+  Serial.print(',');
+  Serial.print(rightGain, 5);
+  Serial.print(',');
+  Serial.println(leftGain, 5);
 
   motorLeft.updatePower(leftGain);
   motorRight.updatePower(rightGain);
