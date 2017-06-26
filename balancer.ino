@@ -64,6 +64,7 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
+  float safeGain = newGain;
   float leftGain = 0;
   float rightGain = 0;
 
@@ -71,27 +72,28 @@ void updatePower(float newGain){
   float leftAngVel = abs(motorLeft.getAngularVelocity());
 
   // safety first
-  if(newGain > 1){newGain = 1;}
-  if(newGain < -1){newGain = -1;}
+  if(newGain > 1){safeGain = 1;}
+  if(newGain < -1){safeGain = -1;}
 
   if(rightAngVel == leftAngVel ){
-    leftGain = newGain;
-    rightGain = newGain;
+    leftGain = safeGain;
+    rightGain = safeGain;
   }else if(rightAngVel > leftAngVel){
-    rightGain = abs(leftAngVel / rightAngVel) * newGain;
-    leftGain = newGain;
+    rightGain = abs(leftAngVel / rightAngVel) * safeGain;
+    leftGain = safeGain;
   }else{
-    rightGain = newGain;
-    leftGain = abs(rightAngVel / leftAngVel) * newGain;
+    rightGain = safeGain;
+    leftGain = abs(rightAngVel / leftAngVel) * safeGain;
   }
-
-  Serial.print(rightAngVel, 5);
-  Serial.print(',');
-  Serial.print(leftAngVel, 5);
-  Serial.print(',');
-  Serial.print(rightGain, 5);
-  Serial.print(',');
-  Serial.println(leftGain, 5);
+  // Serial.print(rightAngVel, 5);
+  // Serial.print(',');
+  // Serial.print(leftAngVel, 5);
+  // Serial.print(',');
+  // Serial.print(newGain, 5);
+  // Serial.print(',');
+  // Serial.print(rightGain, 5);
+  // Serial.print(',');
+  // Serial.println(leftGain, 5);
 
   motorLeft.updatePower(leftGain);
   motorRight.updatePower(rightGain);
@@ -136,10 +138,7 @@ void setup() {
     Serial.println("Inertial Sensor failed, or not present");
     errorMode("could not find IMU.");
   } else {
-
     bno.setExtCrystalUse(true);
-
-    Serial.println("Inertial Sensor present");
   }
 
   estimator.init();

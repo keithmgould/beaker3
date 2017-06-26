@@ -36,14 +36,14 @@ public:
          0, 0, 1, 0;
 
     // Process noise covariance matrices
-    Q << .001, 0, 0,  0,
-         0, .001, 0,  0,
-         0, 0, .0001,  0,
-         0, 0, 0, .0001;
+    Q << 0.00001, 0, 0, 0,
+         0, 0.00001, 0, 0,
+         0, 0, 0.00001, 0,
+         0, 0, 0, 0.00001;
 
     // Measurement noise covariance
-    R << 0.5, 0,
-         0, 1;
+    R << 0.001, 0,
+         0, .001;
 
     // Initial Estimate error covariance
     P0.Fill(0);
@@ -59,28 +59,34 @@ public:
     Matrix<4, 1> x0;
     x0 << 0, 0, 0, 0;
     kf.init(x0);
-
-    // Serial << "y(th), y(phi), x^(th), x^(th_dot), x^(phi), x^(phi_dot), gain\n";
   }
 
   float update(const float xPos, const float theta){
     y << xPos, theta;
     kf.update(y, gain);
     gain = (-K * kf.state())(0,0);
-    // print();
+    print();
     return gain;
   }
 
   void printStates(){
     for(int n = 0; n < STATES; n++){
-      Serial << kf.state()(n,0) << ',';
+      Serial.print(kf.state()(n,0), 5);
+      Serial.print(',');
     }
   }
 
+  void printObservations(){
+    Serial.print(y(0,0), 5);
+    Serial.print(',');
+    Serial.print(y(1,0), 5);
+    Serial.print(',');
+  }
+
   void print(){
-    Serial << y(0,0) << ',' << y(1,0) << ',';
+    printObservations();
     printStates();
-    Serial << gain << '\n';
+    Serial.println(gain, 5);
   }
 
 private:
