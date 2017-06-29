@@ -2,11 +2,8 @@
 #include <kalman.h>
 
 #define STATES 4
-#define OBVS 2
+#define OBVS 3
 #define PI 3.14159265359
-
-// NOTE: Soon we can change M to 3 since we can also observe theta_DOT
-// via gyrometer
 
 /*
   This class:
@@ -20,20 +17,23 @@ public:
 
   Estimator(){
     // Discrete A-Matrix
-    A << 1,0.0056717,0.00057558,4.6533e-06,
-         0,0.03229,0.038972,0.00057558,
-         0,-0.034276,1.0082,0.020056,
-         0,-2.3208,0.77295,1.0082;
+    A << 1,0.0061043,0.00046038,3.6851e-06,
+         0,0.043089,0.031767,0.00046038,
+         0,-0.027391,1.0065,0.020045,
+         0,-1.89,0.6231,1.0065;
+
 
     // Discrete B-Matrix
-    B << 0.017552,
-         1.1854,
-         0.041988,
-         2.843;
+    B << 0.017022,
+         1.1722,
+         0.033554,
+         2.3153;
 
-    // only observe theta and phi
+
+    // observe xpos, theta, thetaDot
     C << 1, 0, 0, 0,
-         0, 0, 1, 0;
+         0, 0, 1, 0,
+         0, 0, 0, 1;
 
     // Process noise covariance matrices
     Q << 0.00001, 0, 0, 0,
@@ -42,8 +42,9 @@ public:
          0, 0, 0, 0.00001;
 
     // Measurement noise covariance
-    R << 0.001, 0,
-         0, .001;
+    R << 0.001, 0, 0,
+         0, 0.001, 0,
+         0, 0, 0.001;
 
     // Initial Estimate error covariance
     P0.Fill(0);
@@ -61,8 +62,8 @@ public:
     kf.init(x0);
   }
 
-  float update(const float xPos, const float theta){
-    y << xPos, theta;
+  float update(const float xPos, const float theta, const float thetaDot){
+    y << xPos, theta, thetaDot;
     kf.update(y, gain);
     gain = (-K * kf.state())(0,0);
     print();
@@ -77,10 +78,10 @@ public:
   }
 
   void printObservations(){
-    Serial.print(y(0,0), 5);
-    Serial.print(',');
-    Serial.print(y(1,0), 5);
-    Serial.print(',');
+    for(int n = 0; n < OBVS; n++){
+      Serial.print(y(n,0), 5);
+      Serial.print(',');
+    }
   }
 
   void print(){

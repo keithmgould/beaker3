@@ -145,21 +145,23 @@ void setup() {
 
   // Turn on indicator light because we are ready to rock.
   digitalWrite(INDICATOR, HIGH);
+
+  // now that light is on, allow human to get the robot upright
+  delay(1000);
 }
 
 void loop() {
   if((millis() - timeMarker) < TIMESTEP){return;}
   timeMarker = millis();
 
-  // Acceleration in meters per second squared
+  // Linear Acceleration in meters per second squared
   imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
 
-  // // Angular velocity in radians per second
-  // // when ready here is gyro: degToRadians(-RotationalVelocity.y()
-  // imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-
+  // Angular velocity in radians per second
+  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+  float angularVelocity = degToRadians(-RotationalVelocity.y());
   currentTheta = accToRadians(Acceleration.z());
-  // if(abs(currentTheta) >  MAX_TILT) { errorMode("max tilt."); }
-  float newGain = estimator.update(avgXPos(),currentTheta);
+
+  float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);
   updatePower(newGain);
 }

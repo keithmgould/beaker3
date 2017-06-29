@@ -52,9 +52,9 @@ d=[0;0;0;0];
 
 % Name States, Inputs, and Outputs
 
-states = {'xDot' 'xDDot' 'PhiDot' 'PhiDDot'};
+states = {'xDot' 'xDDot' 'ThDot' 'ThDDot'};
 inputs = ('Va');
-outputs= {'x' 'xDot' 'Phai' 'PhDot'};
+outputs= {'x' 'xDot' 'Theta' 'ThDot'};
 
 % Construct State-Space System
 
@@ -80,10 +80,10 @@ D = sys_d.d;
 
 % State Weights for Q weight matrix (Assigned arbitrarily/trial and error)
 
-w = 1000;            % x state variable weight
-x = 1000;          % xDot state variable weight
-y = 1000;           % phi state variable weight
-z = 1000;            % phiDot state variable weight
+w = 10;            % x state variable weight
+x = 10;          % xDot state variable weight
+y = 10;           % theta state variable weight
+z = 10;            % thetaDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
 
@@ -94,7 +94,7 @@ Q = [w 0 0 0;
 
 % Assign R value for LQR input weight
 
-R = .000001;
+R = 10;
 
 % Find LQR gain Matrix K and new poles e
 
@@ -109,10 +109,10 @@ dlmwrite('Kd_matrix.csv',K);
 
 % Construct state feedback discrete time state-space model matrices
 
-Ac = [(A-B*K)];
-Bc = [B];
-Cc = [C];
-Dc = [D];
+Ac = (A-B*K);
+Bc = B;
+Cc = C;
+Dc = D;
 
 % Closed loop poles from state feedback
 
@@ -146,7 +146,7 @@ x0=[0 0 0.2 0];     % Inintial angle: 0.2 radians
 
 figure;
 plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
-legend('x','xDot','phi','phiDot')
+legend('x','xDot','theta','thetaDot')
 title('Response with Digital LQR Control')
 
 %Plot control input due to LQR state feedback gain
