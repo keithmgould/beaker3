@@ -3,7 +3,6 @@
 
 #define STATES 4
 #define OBVS 3
-#define PI 3.14159265359
 
 /*
   This class:
@@ -50,7 +49,8 @@ public:
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.35943,-1.3537,3.3644,0.72339;
+    K << -0.11983,-1.1733,2.9436,0.62994;
+
   }
 
   void init(){
@@ -63,7 +63,7 @@ public:
   }
 
   float update(const float xPos, const float theta, const float thetaDot){
-    y << xPos, theta, thetaDot;
+    y << xPos, -theta, -thetaDot;
     kf.update(y, gain);
     gain = (-K * kf.state())(0,0);
     print();

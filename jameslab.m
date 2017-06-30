@@ -80,9 +80,9 @@ D = sys_d.d;
 
 % State Weights for Q weight matrix (Assigned arbitrarily/trial and error)
 
-w = 10;            % x state variable weight
-x = 10;          % xDot state variable weight
-y = 10;           % theta state variable weight
+w = 1;            % x state variable weight
+x = 5;          % xDot state variable weight
+y = 100;           % theta state variable weight
 z = 10;            % thetaDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
@@ -94,7 +94,7 @@ Q = [w 0 0 0;
 
 % Assign R value for LQR input weight
 
-R = 10;
+R = 1;
 
 % Find LQR gain Matrix K and new poles e
 
@@ -132,7 +132,7 @@ t = 0:Ts:10;
 
 % Set initial conditions for simulation
 
-x0=[0 0 0.2 0];     % Inintial angle: 0.2 radians
+x0=[1 0 0 0];     % Inintial angle: 0.2 radians
 
 % Run simulation of system response based on initial angle of 0.2 radians.
 

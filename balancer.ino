@@ -2,6 +2,9 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 
+#include <SoftwareSerial.h>
+#include <SabertoothSimplified.h>
+
 // IMU constants
 #define BALANCED_OFFSET 0.85 // sensor does not show 0 on balance but it should.
 
@@ -25,16 +28,18 @@
 // pins for the motor power and encoders
 #define RH_ENCODER_A 2 // interupt pin
 #define RH_ENCODER_B 38
-#define RH_POWER 6
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
-#define LH_POWER 7
+#define SerialTX 18
 
 #define TIMESTEP 50 // out of 1000 (ms)
 
-ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1, LH_POWER);
-ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1, RH_POWER);
+ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, -1);
+ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, 1);
 Estimator estimator;
+
+SoftwareSerial SWSerial(NOT_A_PIN, SerialTX); // RX on no pin (unused). Tx to S1.
+SabertoothSimplified sabertooth(SWSerial); // Use SWSerial as the serial port.
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
 long timeMarker = 0;
@@ -64,27 +69,32 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
-  float safeGain = newGain;
-  float leftGain = 0;
-  float rightGain = 0;
-
-  float rightAngVel = abs(motorRight.getAngularVelocity());
-  float leftAngVel = abs(motorLeft.getAngularVelocity());
-
   // safety first
-  if(newGain > 1){safeGain = 1;}
-  if(newGain < -1){safeGain = -1;}
+  if(newGain > 1){newGain = 1;}
+  if(newGain < -1){newGain = -1;}
 
-  if(rightAngVel == leftAngVel ){
-    leftGain = safeGain;
-    rightGain = safeGain;
-  }else if(rightAngVel > leftAngVel){
-    rightGain = abs(leftAngVel / rightAngVel) * safeGain;
-    leftGain = safeGain;
-  }else{
-    rightGain = safeGain;
-    leftGain = abs(rightAngVel / leftAngVel) * safeGain;
-  }
+  // easier than changing the wiring...
+  newGain = -newGain;
+
+  // float rightAngVel = -abs(motorRight.getAngularVelocity());
+  // float leftAngVel = -abs(motorLeft.getAngularVelocity());
+
+  float amplifiedGain = newGain * 100; // up to 127
+
+
+  sabertooth.motor(1, amplifiedGain);
+  sabertooth.motor(2, amplifiedGain);
+
+  // if(rightAngVel == leftAngVel ){
+  //   leftGain = safeGain;
+  //   rightGain = safeGain;
+  // }else if(rightAngVel > leftAngVel){
+  //   rightGain = abs(leftAngVel / rightAngVel) * safeGain;
+  //   leftGain = safeGain;
+  // }else{
+  //   rightGain = safeGain;
+  //   leftGain = abs(rightAngVel / leftAngVel) * safeGain;
+  // }
   // Serial.print(rightAngVel, 5);
   // Serial.print(',');
   // Serial.print(leftAngVel, 5);
@@ -95,8 +105,6 @@ void updatePower(float newGain){
   // Serial.print(',');
   // Serial.println(leftGain, 5);
 
-  motorLeft.updatePower(leftGain);
-  motorRight.updatePower(rightGain);
 }
 
 // kill motors and blink status indicator
@@ -124,11 +132,16 @@ void setup() {
   // Open serial communications
   // and wait for port to open:
   Serial.begin(115200);
-  while (!Serial) {}
+  while (!Serial) {;}
 
   motorLeft.init();
   motorRight.init();
   delay(100);
+
+  SWSerial.begin(9600);
+  while (!SWSerial) {;}
+
+  updatePower(0);
 
   attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
@@ -147,7 +160,7 @@ void setup() {
   digitalWrite(INDICATOR, HIGH);
 
   // now that light is on, allow human to get the robot upright
-  delay(1000);
+  // delay(2000);
 }
 
 void loop() {
@@ -160,6 +173,8 @@ void loop() {
   // Angular velocity in radians per second
   imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
   float angularVelocity = degToRadians(-RotationalVelocity.y());
+
+  // theta in radians
   currentTheta = accToRadians(Acceleration.z());
 
   float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);

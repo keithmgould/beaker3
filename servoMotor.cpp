@@ -9,9 +9,8 @@
 class ServoMotor
 {
   private:
-
   int edgeCount;
-  int firstEncoderPin, secondEncoderPin, driverPin, tickDirection;
+  int firstEncoderPin, secondEncoderPin, tickDirection;
   float angularVelocity;
   long secSinceLastMeasure;
 
@@ -29,38 +28,16 @@ class ServoMotor
   public:
   //-------------------------------------------------------------------
 
-  ServoMotor(int firstEncoderPinArg, int secondEncoderPinArg, int tickDirectionArg, int driverPinArg)
+  ServoMotor(int firstEncoderPinArg, int secondEncoderPinArg, int tickDirectionArg)
   {
-    driverPin = driverPinArg;
     firstEncoderPin = firstEncoderPinArg;
     secondEncoderPin = secondEncoderPinArg;
     tickDirection = tickDirectionArg;
   }
 
-  //===========================================
-  // API:
-  // full forward: 1
-  // full reverse: -1
-  // stop: 0
-
-  // Convert to PWM.
-  // 188 is full stop
-  // 208 is full forward
-  // 168 is full reverse
-  void updatePower(float power)
-  {
-    // safety first.
-    if(power > 1) { power = 1; }
-    if(power < -1) { power = -1; }
-
-    float mult = static_cast<int>(power * 20);
-    int newPower = 188 + mult;
-
-    analogWrite(driverPin, newPower);
-  }
-
   void init()
   {
+
     pinMode(firstEncoderPin, INPUT_PULLUP); // interupt
     pinMode(secondEncoderPin, INPUT_PULLUP); // non-interupt
     secSinceLastMeasure = micros();
