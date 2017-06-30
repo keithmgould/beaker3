@@ -134,17 +134,17 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) {;}
 
+  // initialize motor encoders and interrupts
   motorLeft.init();
   motorRight.init();
   delay(100);
-
-  SWSerial.begin(9600);
-  while (!SWSerial) {;}
-
-  updatePower(0);
-
   attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
+
+  // Sabertooth motor driver commanded over Serial
+  SWSerial.begin(9600);
+  while (!SWSerial) {;}
+  updatePower(0);
 
   //Check to see if the Inertial Sensor is wired correctly and functioning normally
   if (!bno.begin(0x05)) {
@@ -154,13 +154,14 @@ void setup() {
     bno.setExtCrystalUse(true);
   }
 
+  // initialize our LQG regulator
   estimator.init();
 
   // Turn on indicator light because we are ready to rock.
   digitalWrite(INDICATOR, HIGH);
 
   // now that light is on, allow human to get the robot upright
-  // delay(2000);
+  delay(2000);
 }
 
 void loop() {
