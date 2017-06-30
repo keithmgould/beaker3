@@ -63,7 +63,7 @@ public:
   }
 
   float update(const float xPos, const float theta, const float thetaDot){
-    y << xPos, -theta, -thetaDot;
+    y << xPos, theta, thetaDot;
     kf.update(y, gain);
     gain = (-K * kf.state())(0,0);
     print();
