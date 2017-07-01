@@ -42,14 +42,14 @@ public:
 
     // Measurement noise covariance
     R << 0.001, 0, 0,
-         0, 0.001, 0,
-         0, 0, 0.001;
+         0, 0.01, 0,
+         0, 0, 0.01;
 
     // Initial Estimate error covariance
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.11983,-1.1733,2.9436,0.62994;
+    K << -0.30798,-1.5234,10.627,0.8494;
 
   }
 
@@ -65,7 +65,7 @@ public:
   float update(const float xPos, const float theta, const float thetaDot){
     y << xPos, theta, thetaDot;
     kf.update(y, gain);
-    gain = (-K * kf.state())(0,0);
+    gain = (K * kf.state())(0,0);
     print();
     return gain;
   }
