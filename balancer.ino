@@ -30,9 +30,14 @@
 #define RH_ENCODER_B 38
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
+
+// We communicate with the sabertooth motor driver
+// over serial
 #define SerialTX 18
 
-#define TIMESTEP 50 // out of 1000 (ms)
+// Time (in ms) between loops.
+// Yields 50Hz.
+#define TIMESTEP 20
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, -1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, 1);
@@ -143,7 +148,7 @@ void setup() {
   while (!SWSerial) {;}
   updatePower(0);
 
-  //Check to see if the Inertial Sensor is wired correctly and functioning normally
+  //Check to see if the Inertial Sensor is functioning
   if (!bno.begin(0x05)) {
     Serial.println("Inertial Sensor failed, or not present");
     errorMode("could not find IMU.");
