@@ -18,12 +18,12 @@ clear; clc;
 
 % Declare Constant Values
 
-mp=1.8;            % Mass of the pendulum
-mw=0.2;            % Mass of the wheel
-L=0.181;             % Length to Center of Gravity
+mp=1.66;            % Mass of the pendulum
+mw=0.1;             % Mass of single wheel
+L=0.181;            % Length to Center of Gravity
 r=0.042;            % Radius of the wheel
 ip=0.069;           % inertia of the pendulum around the wheel axis. I = (1/3)ML^2
-iw=0.0001764;     % inertia of the wheel around the wheel axis
+iw=0.0001764;       % inertia of the wheel around the wheel axis
 R=0.0024;           % The resistance of the DC Motor
 ke=0.0342857;       % Voltage constant for the DC Motor
 km=0.017;           % Motor Torque Constant of the DC Motor
@@ -80,10 +80,10 @@ D = sys_d.d;
 
 % State Weights for Q weight matrix (Assigned arbitrarily/trial and error)
 
-w = 10;            % x state variable weight
-x = 5;          % xDot state variable weight
-y = 1000;           % theta state variable weight
-z = 10;            % thetaDot state variable weight
+w = 1;            % x state variable weight
+x = 1;          % xDot state variable weight
+y = 1;           % theta state variable weight
+z = 1;            % thetaDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
 
@@ -94,7 +94,7 @@ Q = [w 0 0 0;
 
 % Assign R value for LQR input weight
 
-R = .1;
+R = 1;
 
 % Find LQR gain Matrix K and new poles e
 
@@ -132,7 +132,7 @@ t = 0:Ts:10;
 
 % Set initial conditions for simulation
 
-x0=[0 0 .2 0];     % Inintial angle: 0.2 radians
+x0=[0 0 .2 .5];     % Inintial angle: 0.2 radians
 
 % Run simulation of system response based on initial angle of 0.2 radians.
 
@@ -144,14 +144,14 @@ x0=[0 0 .2 0];     % Inintial angle: 0.2 radians
 
 % Plot all state output
 
-% figure;
-% plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
-% legend('x','xDot','theta','thetaDot')
-% title('Response with Digital LQR Control')
-%
-% %Plot control input due to LQR state feedback gain
-%
-% figure;
-% plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
-% legend('Voltage Applied')
-% title('Control Input from Digital LQR Control')
+figure;
+plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
+legend('x','xDot','theta','thetaDot')
+title('Response with Digital LQR Control')
+
+%Plot control input due to LQR state feedback gain
+
+figure;
+plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
+legend('Voltage Applied')
+title('Control Input from Digital LQR Control')

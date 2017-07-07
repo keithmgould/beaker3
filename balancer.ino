@@ -81,7 +81,7 @@ void updatePower(float newGain){
   // float rightAngVel = -abs(motorRight.getAngularVelocity());
   // float leftAngVel = -abs(motorLeft.getAngularVelocity());
 
-  float amplifiedGain = newGain * 120; // up to +/-127
+  float amplifiedGain = newGain * 100; // up to +/-127
 
 
   sabertooth.motor(1, amplifiedGain);
