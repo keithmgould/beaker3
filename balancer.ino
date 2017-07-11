@@ -82,13 +82,8 @@ void updatePower(float newGain){
   if(newGain < -1){newGain = -1;}
   float amplifiedGain = newGain * 60; // up to +/-127
 
-  // if(newGain > 10){newGain = 10;}
-  // if(newGain < -10){newGain = -10;}
-  // float amplifiedGain = newGain * 10;
-
   sabertooth.motor(1, amplifiedGain);
   sabertooth.motor(2, amplifiedGain);
-
 }
 
 // kill motors and blink status indicator
