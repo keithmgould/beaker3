@@ -31,12 +31,15 @@
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
 
+#define MAX_GAIN 50 // be kind to your motors
+
 // We communicate with the sabertooth motor driver
 // over serial
 #define SerialTX 18
 
-// Time (in ms) between loops.
-// Yields 50Hz.
+// Time (in millisecs) between loops.
+// 20 => 50hz
+// 4  => 250hz
 #define TIMESTEP 20
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, -1);
@@ -74,38 +77,16 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
+  newGain = -newGain; // easier than swapping wires.
+
   // safety first
   if(newGain > 1){newGain = 1;}
   if(newGain < -1){newGain = -1;}
 
-  // float rightAngVel = -abs(motorRight.getAngularVelocity());
-  // float leftAngVel = -abs(motorLeft.getAngularVelocity());
-
-  float amplifiedGain = newGain * 100; // up to +/-127
-
+  float amplifiedGain = newGain * 40; // up to +/-127
 
   sabertooth.motor(1, amplifiedGain);
   sabertooth.motor(2, amplifiedGain);
-
-  // if(rightAngVel == leftAngVel ){
-  //   leftGain = safeGain;
-  //   rightGain = safeGain;
-  // }else if(rightAngVel > leftAngVel){
-  //   rightGain = abs(leftAngVel / rightAngVel) * safeGain;
-  //   leftGain = safeGain;
-  // }else{
-  //   rightGain = safeGain;
-  //   leftGain = abs(rightAngVel / leftAngVel) * safeGain;
-  // }
-  // Serial.print(rightAngVel, 5);
-  // Serial.print(',');
-  // Serial.print(leftAngVel, 5);
-  // Serial.print(',');
-  // Serial.print(newGain, 5);
-  // Serial.print(',');
-  // Serial.print(rightGain, 5);
-  // Serial.print(',');
-  // Serial.println(leftGain, 5);
 
 }
 

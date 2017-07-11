@@ -1,40 +1,33 @@
 clear; clc;
 
-%% Continuous Time State-Space Model
+M  = 0.2;        % mass of both wheels kg
+m  = 1.66;       % mass of body kg
+g  = 9.8;        % gravity yo.
+I  = 0.0717;      % rotational intertia of robot
+l  = 0.181;      % length from wheels to robot's COM (meters)
+bf = 0.0001;     % friction between wheels and floor
 
-% Declare Constant Values
+denom = M*l^2*m+I*M+I*m;
 
-mp=1.66;            % Mass of the robot body
-mw=0.1;             % Mass of single wheel
-L=0.181;            % Length to Center of Gravity
-r=0.042;            % Radius of the wheel
-ip=0.069;           % inertia of the pendulum around the wheel axis. I = (1/3)ML^2
-iw=0.0001764;       % inertia of the wheel around the wheel axis
-R=0.0024;           % The resistance of the DC Motor
-ke=0.0342857;       % Voltage constant for the DC Motor
-km=0.017;           % Motor Torque Constant of the DC Motor
-g=9.81;             % Gravity
+a22 = bf*(m*l^2+I) / denom;
+a23 = m^2*g*l^2 / denom;
+a42 = -bf*m*l / denom;
+a43 = m*l*g*(M + m) / denom;
 
-% Declare additional constants to aviod repeated calculation
+a = [ 0 1   0   0;
+      0 a22 a23 0;
+      0 0   0   1;
+      0 a42 a43 0;
+    ];
 
-beta = 2*mw+((2*iw)/(r*r))+mp;
-alpha = (ip*beta)+(2*mp*L*L*(mw+(iw/(r*r))));
+b2 = I + m * l^2 / denom;
+b4 = m * l / denom;
 
-% State-Space A Matrix Indices
+b = [0; b2; 0; b4];
 
-a22=(2*km*ke*(mp*L*r-ip-mp*L*L))/(R*r*r*alpha);
-a23=(mp*mp*g*L*L)/alpha;
-a42=(2*km*ke*(r*beta-mp*L))/(R*r*r*alpha);
-a43=(mp*g*L*beta)/alpha;
-b21=(2*km*(ip+mp*L*L-mp*L*r))/(R*r*alpha);
-b24=(2*km*(mp*L-r*beta))/(R*r*alpha);
+c = [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
 
-% Construct Continuous Time State-Space Matrices (x'=Ax+Bu , y=Cx+Du)
-
-a=[0 1 0 0;0 a22 a23 0;0 0 0 1;0 a42 a43 0];
-b=[0 ;b21 ;0 ;b24];
-c=[1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 1];
-d=[0;0;0;0];
+d = [0; 0; 0; 0];
 
 % Name States, Inputs, and Outputs
 
@@ -49,9 +42,8 @@ sys_ss = ss(a,b,c,d,'statename',states,'inputname',inputs,'outputname',outputs);
 
 %% Discrete Time State-Space with LQR Modeling
 
-% Set timestep value in seconds (data update freq=50Hz)
-
-Ts=0.02;
+% Set timestep value in seconds
+Ts=0.02; % 50Hz
 
 % Convert Continous Time Model to Discrete Time Model
 
@@ -80,7 +72,7 @@ Q = [w 0 0 0;
 
 % Assign R value for LQR input weight
 
-R = .001;
+R = 1;
 
 % Find LQR gain Matrix K and new poles e
 
@@ -118,7 +110,7 @@ t = 0:Ts:10;
 
 % Set initial conditions for simulation
 
-x0=[0 0 .2 .5];     % Inintial angle: 0.2 radians
+x0=[0 0 .02 0];     % Inintial angle: 0.2 radians
 
 % Run simulation of system response based on initial angle of 0.2 radians.
 
@@ -126,18 +118,18 @@ x0=[0 0 .2 .5];     % Inintial angle: 0.2 radians
 % constant position, speed, tilt angle, and tilt rate of 0. Robot stays
 % vertical and at initial position.
 
-% [y,t,x]=initial(sys_cl,x0,t);
-%
-% % Plot all state output
-%
-% figure;
-% plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
-% legend('x','xDot','theta','thetaDot')
-% title('Response with Digital LQR Control')
-%
-% %Plot control input due to LQR state feedback gain
-%
-% figure;
-% plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
-% legend('Voltage Applied')
-% title('Control Input from Digital LQR Control')
+[y,t,x]=initial(sys_cl,x0,t);
+
+% Plot all state output
+
+figure;
+plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
+legend('x','xDot','theta','thetaDot')
+title('Response with Digital LQR Control')
+
+%Plot control input due to LQR state feedback gain
+
+figure;
+plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
+legend('Voltage Applied')
+title('Control Input from Digital LQR Control')

@@ -15,17 +15,23 @@ class Estimator
 public:
 
   Estimator(){
-    // Discrete A-Matrix
-    A << 1,0.00524,0.00042912,3.5078e-06,
-         0,0.02363,0.028445,0.00042912,
-         0,-0.028544,1.0062,0.020042,
-         0,-1.8921,0.58828,1.0062;
+
+  // Discrete A-Matrix
+  A << 1,0.02,0.0012283,8.1844e-06,
+0,1,0.12298,0.0012283,
+0,-4.1714e-08,1.0076,0.020051,
+0,-4.1767e-06,0.76133,1.0076;
+
+
 
     // Discrete B-Matrix
-    B << 0.018081,
-         1.1961,
-         0.034966,
-         2.3178;
+  B <<8.9833e-05,
+0.0089918,
+0.00041714,
+0.041767;
+
+
+
 
     // observe xpos, theta, thetaDot
     C << 1, 0, 0, 0,
@@ -39,7 +45,7 @@ public:
          0, 0, 0, 0.00001;
 
     // Measurement noise covariance
-    R << 0.001, 0, 0,
+    R << 0.0001, 0, 0,
          0, 0.001, 0,
          0, 0, 0.001;
 
@@ -47,8 +53,7 @@ public:
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.33216,-1.4029,3.5157,0.75154;
-
+    K << -0.87808,-4.1284,37.174,6.7404;
   }
 
   void init(){
@@ -63,7 +68,7 @@ public:
   float update(const float xPos, const float theta, const float thetaDot){
     y << xPos, theta, thetaDot;
     kf.update(y, gain);
-    gain = (K * kf.state())(0,0);
+    gain = (-K * kf.state())(0,0);
     print();
     return gain;
   }
