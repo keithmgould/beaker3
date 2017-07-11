@@ -1,14 +1,18 @@
 clear; clc;
 
-M  = 0.2;        % mass of both wheels kg
-m  = 1.66;       % mass of body kg
-g  = 9.8;        % gravity yo.
-I  = 0.0717;      % rotational intertia of robot
-l  = 0.181;      % length from wheels to robot's COM (meters)
-bf = 0.0001;     % friction between wheels and floor
+% properties of robot and earth
+M  = 0.2;       % mass of both wheels kg
+m  = 1.66;      % mass of body kg
+g  = 9.8;       % gravity yo.
+l  = 0.181;     % length from wheels to robot's COM (meters)
+bf = 0.0001;    % friction between wheels and floor
 
+% calculations
+Lfull = l * 2;              % full length or robot
+I  = (1/3)* m * Lfull^2;    % rotational intertia of robot ( was .071)
 denom = M*l^2*m+I*M+I*m;
 
+% matrix prep
 a22 = bf*(m*l^2+I) / denom;
 a23 = m^2*g*l^2 / denom;
 a42 = -bf*m*l / denom;

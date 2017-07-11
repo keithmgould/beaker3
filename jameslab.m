@@ -118,7 +118,7 @@ t = 0:Ts:10;
 
 % Set initial conditions for simulation
 
-x0=[0 0 .2 .5];     % Inintial angle: 0.2 radians
+x0=[0 0 .02 0];     % Inintial angle: 0.2 radians
 
 % Run simulation of system response based on initial angle of 0.2 radians.
 
@@ -126,18 +126,18 @@ x0=[0 0 .2 .5];     % Inintial angle: 0.2 radians
 % constant position, speed, tilt angle, and tilt rate of 0. Robot stays
 % vertical and at initial position.
 
-% [y,t,x]=initial(sys_cl,x0,t);
-%
-% % Plot all state output
-%
-% figure;
-% plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
-% legend('x','xDot','theta','thetaDot')
-% title('Response with Digital LQR Control')
-%
-% %Plot control input due to LQR state feedback gain
-%
-% figure;
-% plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
-% legend('Voltage Applied')
-% title('Control Input from Digital LQR Control')
+[y,t,x]=initial(sys_cl,x0,t);
+
+% Plot all state output
+
+figure;
+plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
+legend('x','xDot','theta','thetaDot')
+title('Response with Digital LQR Control')
+
+%Plot control input due to LQR state feedback gain
+
+figure;
+plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
+legend('Voltage Applied')
+title('Control Input from Digital LQR Control')

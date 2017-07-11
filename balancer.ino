@@ -77,13 +77,14 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
-  newGain = -newGain; // easier than swapping wires.
-
   // safety first
   if(newGain > 1){newGain = 1;}
   if(newGain < -1){newGain = -1;}
+  float amplifiedGain = newGain * 60; // up to +/-127
 
-  float amplifiedGain = newGain * 40; // up to +/-127
+  // if(newGain > 10){newGain = 10;}
+  // if(newGain < -10){newGain = -10;}
+  // float amplifiedGain = newGain * 10;
 
   sabertooth.motor(1, amplifiedGain);
   sabertooth.motor(2, amplifiedGain);
@@ -156,10 +157,10 @@ void loop() {
 
   // Angular velocity in radians per second
   imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-  float angularVelocity = degToRadians(-RotationalVelocity.y());
+  float angularVelocity = degToRadians(RotationalVelocity.y());
 
   // theta in radians
-  currentTheta = accToRadians(Acceleration.z());
+  currentTheta = accToRadians(-Acceleration.z());
 
   float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);
   updatePower(newGain);
