@@ -40,3 +40,6 @@ Makefile
 build/
 build-*/
 
+#random
+papers/
+
