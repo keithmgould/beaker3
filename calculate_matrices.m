@@ -9,6 +9,9 @@ g     = 9.81;       % gravity yo. (m/s/s)
 l     = 0.181;      % length from wheels to robot's COM (meters)
 r     = 0.042;      % radius of wheel (meters)
 
+% See http://fccr.ucsd.edu/pubs/NR.pdf
+% page 504
+
 denom = -l^2*m__b^2*r^2+(l^2*m__b+I__b)*(m__b*r^2+m__w*r^2+I__w);
 
 % matrix prep
