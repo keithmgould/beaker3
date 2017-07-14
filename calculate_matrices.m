@@ -1,31 +1,27 @@
 clear; clc;
 
 % properties of robot and earth
-M  = 0.2;       % mass of both wheels kg
-m  = 1.66;      % mass of body kg
-g  = 9.8;       % gravity yo.
-l  = 0.181;     % length from wheels to robot's COM (meters)
-bf = 0.0001;    % friction between wheels and floor
+m__w  = 0.2;        % mass of both wheels (kg)
+m__b  = 1.66;       % mass of body (kg)
+I__b  = .069;       % inertia of body
+I__w  = .0001764;   % inertia of both wheels
+g     = 9.81;       % gravity yo. (m/s/s)
+l     = 0.181;      % length from wheels to robot's COM (meters)
+r     = 0.042;      % radius of wheel (meters)
 
-% calculations
-Lfull = l * 2;              % full length or robot
-I  = (1/3)* m * Lfull^2;    % rotational intertia of robot ( was .071)
-denom = M*l^2*m+I*M+I*m;
+denom = -l^2*m__b^2*r^2+(l^2*m__b+I__b)*(m__b*r^2+m__w*r^2+I__w);
 
 % matrix prep
-a22 = bf*(m*l^2+I) / denom;
-a23 = m^2*g*l^2 / denom;
-a42 = -bf*m*l / denom;
-a43 = m*l*g*(M + m) / denom;
+a23 = -m__b^2*g*l^2*r / denom;
+a43 = (m__b*r^2+m__w*r^2+I__w)*g*l*m__b / denom;
 
-a = [ 0 1   0   0;
-      0 a22 a23 0;
-      0 0   0   1;
-      0 a42 a43 0;
-    ];
+a = [0 1  0  0;
+     0 0 a23 0;
+     0 0  0  1;
+     0 0 a43 0];
 
-b2 = I + m * l^2 / denom;
-b4 = m * l / denom;
+b2 = l^2*m__b+l*m__b*r+I__b / denom;
+b4 = -l*m__b*r-m__b*r^2-m__w*r^2-I__w / denom;
 
 b = [0; b2; 0; b4];
 
@@ -79,11 +75,16 @@ Q = [w 0 0 0;
 
 % Assign R value for LQR input weight
 
-R = 1;
+R = 10000;
 
 % Find LQR gain Matrix K and new poles e
-
 [K,S,e] = dlqr(A,B,Q,R);
+
+% my_poles = [-0.099; -00.0098; -0.00097; -0.00096];
+
+% K = place(A, B, my_poles);
+
+
 
 %% Save the matrices
 dlmwrite('Ad_matrix.csv',A);
@@ -130,8 +131,16 @@ x0=[0 0 .02 0];     % Inintial angle: 0.2 radians
 % Plot all state output
 
 figure;
-plot(t,y(:,1),t,y(:,2),t,y(:,3),t,y(:,4));
-legend('x','xDot','theta','thetaDot')
+plot(t,y(:,1),t,y(:,2));
+legend('phi','phiDot')
+title('Response with Digital LQR Control')
+
+
+% Plot all state output
+
+figure;
+plot(t,y(:,3),t,y(:,4));
+legend('theta','thetaDot')
 title('Response with Digital LQR Control')
 
 %Plot control input due to LQR state feedback gain

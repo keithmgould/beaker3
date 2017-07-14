@@ -80,7 +80,7 @@ void updatePower(float newGain){
   // safety first
   if(newGain > 1){newGain = 1;}
   if(newGain < -1){newGain = -1;}
-  float amplifiedGain = newGain * 60; // up to +/-127
+  float amplifiedGain = newGain * 40; // up to +/-127
 
   sabertooth.motor(1, amplifiedGain);
   sabertooth.motor(2, amplifiedGain);
@@ -102,6 +102,11 @@ void errorMode(const char* input) {
 float avgXPos() {
   return (motorLeft.getDistance() + motorRight.getDistance()) / 2.0;
 }
+
+float avgPhi() {
+  return (motorLeft.getPhi() + motorRight.getPhi()) / 2.0;
+}
+
 
 void setup() {
   pinMode(INDICATOR, OUTPUT);

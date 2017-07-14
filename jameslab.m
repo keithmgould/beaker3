@@ -47,6 +47,9 @@ outputs= {'x' 'xDot' 'Theta' 'ThDot'};
 sys_ss = ss(a,b,c,d,'statename',states,'inputname',inputs,'outputname',outputs);
 
 
+poles_continuous = eig(a);
+
+
 %% Discrete Time State-Space with LQR Modeling
 
 % Set timestep value in seconds (data update freq=50Hz)
