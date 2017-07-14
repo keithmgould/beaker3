@@ -6,7 +6,7 @@
 #include <SabertoothSimplified.h>
 
 // IMU constants
-#define BALANCED_OFFSET 0.85 // sensor does not show 0 on balance but it should.
+#define BALANCED_OFFSET 0.89 // sensor does not show 0 on balance but it should.
 
 // 90 degrees in rads is 1.5708
 // Given proportion acc/9.8 = y/1.5708 solve for y
@@ -66,7 +66,7 @@ void rightEncoderEvent() {
 // sin(theta) = y / 9.8.
 // solve for theta
 float accToRadians(float acc) {
-  float theta = (acc - BALANCED_OFFSET) / 9.8;
+  float theta = (acc + BALANCED_OFFSET) / 9.8;
   if(theta < -1) { theta = -1; }
   if(theta > 1) { theta = 1; }
   return asin(theta);
@@ -162,6 +162,6 @@ void loop() {
   // theta in radians
   currentTheta = accToRadians(-Acceleration.z());
 
-  float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);
-  updatePower(newGain);
+  float newGain = estimator.update(avgPhi(),currentTheta, angularVelocity);
+  // updatePower(newGain);
 }
