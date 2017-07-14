@@ -23,8 +23,8 @@ a = [0 1  0  0;
      0 0  0  1;
      0 0 a43 0];
 
-b2 = l^2*m__b+l*m__b*r+I__b / denom;
-b4 = -l*m__b*r-m__b*r^2-m__w*r^2-I__w / denom;
+b2 = (l^2*m__b+l*m__b*r+I__b) / denom;
+b4 = (-l*m__b*r-m__b*r^2-m__w*r^2-I__w) / denom;
 
 b = [0; b2; 0; b4];
 

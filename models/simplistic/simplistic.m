@@ -24,7 +24,7 @@ a = [ 0 1   0   0;
       0 a42 a43 0;
     ];
 
-b2 = I + m * l^2 / denom;
+b2 = (I + m * l^2) / denom;
 b4 = m * l / denom;
 
 b = [0; b2; 0; b4];
