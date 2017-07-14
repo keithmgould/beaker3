@@ -152,3 +152,21 @@ figure;
 plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
 legend('Voltage Applied')
 title('Control Input from Digital LQR Control')
+
+% Now lets simulate
+
+m__w  = 0.2;        % mass of both wheels (kg)
+m__b  = 1.66;       % mass of body (kg)
+I__b  = .069;       % inertia of body
+I__w  = .0001764;   % inertia of both wheels
+g     = 9.81;       % gravity yo. (m/s/s)
+l     = 0.181;      % length from wheels to robot's COM (meters)
+r     = 0.042;      % radius of wheel (meters)
+
+
+tspan = 0:.001:10;
+[t,y] = ode45(@(t,y)cartpend(y,I__b, I__w, m__b,m__w,l,g,r,-K*(y-[0; 0; pi; 0])),tspan,y0);
+
+for k=1:100:length(t)
+    drawcartpend(y(k,:),m,M,L);
+end
