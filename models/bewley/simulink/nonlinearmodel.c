@@ -26,7 +26,7 @@
  * | See matlabroot/simulink/src/sfuntmpl_doc.c for a more detailed template |
  *  ------------------------------------------------------------------------- 
  *
- * Created: Sat Jul 15 15:27:47 2017
+ * Created: Sat Jul 15 16:14:07 2017
  */
 
 #define S_FUNCTION_LEVEL 2
@@ -55,7 +55,7 @@
 #define NUM_OUTPUTS           1
 /* Output Port  0 */
 #define OUT_PORT_0_NAME       y0
-#define OUTPUT_0_WIDTH        1
+#define OUTPUT_0_WIDTH        4
 #define OUTPUT_DIMS_0_COL     1
 #define OUTPUT_0_DTYPE        real_T
 #define OUTPUT_0_COMPLEX      COMPLEX_NO
@@ -72,7 +72,7 @@
 
 #define NPARAMS               0
 
-#define SAMPLE_TIME_0         INHERITED_SAMPLE_TIME
+#define SAMPLE_TIME_0         0
 #define NUM_DISC_STATES       0
 #define DISC_STATES_IC        [0]
 #define NUM_CONT_STATES       4
