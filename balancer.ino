@@ -80,7 +80,7 @@ void updatePower(float newGain){
   // safety first
   if(newGain > 1){newGain = 1;}
   if(newGain < -1){newGain = -1;}
-  float amplifiedGain = newGain * 80; // up to +/-127
+  float amplifiedGain = newGain * 40; // up to +/-127
 
   sabertooth.motor(1, amplifiedGain);
   sabertooth.motor(2, amplifiedGain);
@@ -162,6 +162,6 @@ void loop() {
   // theta in radians
   currentTheta = accToRadians(-Acceleration.z());
 
-  float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);
+  float newGain = estimator.update(avgPhi(),currentTheta, angularVelocity);
   updatePower(newGain);
 }

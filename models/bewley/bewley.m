@@ -44,6 +44,9 @@ sys_ss = ss(a,b,c,d,'statename',states,'inputname',inputs,'outputname',outputs);
 
 poles_continuous = eig(a);
 
+%% continuous K
+
+
 %% Discrete Time State-Space with LQR Modeling
 
 % Set timestep value in seconds
@@ -87,6 +90,9 @@ R = 10000;
 
 % K = place(A, B, my_poles);
 
+%% And for fun lets do the continuous K
+
+cont_K = lqr(a, b, Q, R);
 
 
 %% Save the matrices
@@ -115,58 +121,47 @@ sys_cl = ss(Ac,Bc,Cc,Dc,Ts,'statename',states,'inputname',inputs,'outputname',ou
 
 poles = eig(sys_cl.a);
 
-% Initialize time array in increments of model timestep
-
-t = 0:Ts:10;
-
-% Set initial conditions for simulation
-
-x0=[0 0 .02 0];     % Inintial angle: 0.2 radians
-
 % Run simulation of system response based on initial angle of 0.2 radians.
 
 % All states should converge on a value of zero to ensure robot maintains
 % constant position, speed, tilt angle, and tilt rate of 0. Robot stays
 % vertical and at initial position.
 
-[y,t,x]=initial(sys_cl,x0,t);
+% Initialize time array in increments of model timestep
+% t = 0:Ts:10;
 
-% Plot all state output
+% Set initial conditions for simulation
+% x0=[0 0 .02 0];     % Inintial angle: 0.2 radians
 
-figure;
-plot(t,y(:,1),t,y(:,2));
-legend('phi','phiDot')
-title('Response with Digital LQR Control')
-
-
-% Plot all state output
-
-figure;
-plot(t,y(:,3),t,y(:,4));
-legend('theta','thetaDot')
-title('Response with Digital LQR Control')
-
-%Plot control input due to LQR state feedback gain
-
-figure;
-plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
-legend('Voltage Applied')
-title('Control Input from Digital LQR Control')
+% [y,t,x]=initial(sys_cl,x0,t);
+% 
+% % Plot all state output
+% 
+% figure;
+% plot(t,y(:,1),t,y(:,2));
+% legend('phi','phiDot')
+% title('Response with Digital LQR Control')
+% 
+% 
+% % Plot all state output
+% 
+% figure;
+% plot(t,y(:,3),t,y(:,4));
+% legend('theta','thetaDot')
+% title('Response with Digital LQR Control')
+% 
+% %Plot control input due to LQR state feedback gain
+% 
+% figure;
+% plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
+% legend('Voltage Applied')
+% title('Control Input from Digital LQR Control')
 
 % Now lets simulate
-
-m__w  = 0.2;        % mass of both wheels (kg)
-m__b  = 1.66;       % mass of body (kg)
-I__b  = .069;       % inertia of body
-I__w  = .0001764;   % inertia of both wheels
-g     = 9.81;       % gravity yo. (m/s/s)
-l     = 0.181;      % length from wheels to robot's COM (meters)
-r     = 0.042;      % radius of wheel (meters)
-
-
-tspan = 0:.001:10;
-[t,y] = ode45(@(t,y)cartpend(y,I__b, I__w, m__b,m__w,l,g,r,-K*(y-[0; 0; pi; 0])),tspan,y0);
+y0 = [0 0 pi+0.02 0];
+tspan = 0:.001:3;
+[t,y] = ode45(@(t,y)cartpend(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*(y-[0; 0; pi; 0])),tspan,y0);
 
 for k=1:100:length(t)
-    drawcartpend(y(k,:),m,M,L);
+    drawcartpend(y(k,:),m__b,m__w,2);
 end
