@@ -44,9 +44,6 @@ sys_ss = ss(a,b,c,d,'statename',states,'inputname',inputs,'outputname',outputs);
 
 poles_continuous = eig(a);
 
-%% continuous K
-
-
 %% Discrete Time State-Space with LQR Modeling
 
 % Set timestep value in seconds
@@ -86,11 +83,7 @@ R = 10000;
 % Find LQR gain Matrix K and new poles e
 [K,S,e] = dlqr(A,B,Q,R);
 
-% my_poles = [-0.099; -00.0098; -0.00097; -0.00096];
-
-% K = place(A, B, my_poles);
-
-%% And for fun lets do the continuous K
+%% Calculate continuous K for non-linear simulation below
 
 cont_K = lqr(a, b, Q, R);
 
@@ -116,10 +109,6 @@ poles_LQR = eig(Ac);
 % Construct discrete time state-space model for state feedback simulation
 
 sys_cl = ss(Ac,Bc,Cc,Dc,Ts,'statename',states,'inputname',inputs,'outputname',outputs);
-
-% Verify poles match last 2 pole values
-
-poles = eig(sys_cl.a);
 
 % Run simulation of system response based on initial angle of 0.2 radians.
 
@@ -157,11 +146,18 @@ poles = eig(sys_cl.a);
 % legend('Voltage Applied')
 % title('Control Input from Digital LQR Control')
 
-% Now lets simulate
-y0 = [0 0 pi+0.02 0];
-tspan = 0:.001:3;
-[t,y] = ode45(@(t,y)cartpend(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*(y-[0; 0; pi; 0])),tspan,y0);
+%% Now lets simulate. 
+
+%Initial conditions
+y0 = [5; 0; 0.04; 0];
+tspan = 0:.001:5;
+
+% closed loop:
+[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
+
+% open loop:
+%   [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
 
 for k=1:100:length(t)
-    drawcartpend(y(k,:),m__b,m__w,2);
+    drawpend(y(k,:),r,l);
 end
