@@ -68,6 +68,10 @@ class ServoMotor
     return getPhi() * (float) WHEEL_RADIUS;
   }
 
+  int getEdgeCount() {
+    return edgeCount;
+  }
+
   void encoderEvent() {
     computeAngularVelocity();
     if(digitalRead(firstEncoderPin) == digitalRead(secondEncoderPin)){
