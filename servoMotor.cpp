@@ -3,7 +3,7 @@
 
 #define PI 3.14159265359
 #define WHEEL_DIAMETER .084 // in Meters
-#define FULL_ROTATION_EDGE_EVENTS 300 // 18.75 * 16 (ony 1 encoder is interrupt)
+#define FULL_ROTATION_EDGE_EVENTS 600 // 18.75 * 32
 #define CLICKS_TO_RADIANS 2 * PI / FULL_ROTATION_EDGE_EVENTS
 
 class ServoMotor
