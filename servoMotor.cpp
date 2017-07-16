@@ -4,6 +4,7 @@
 #define PI 3.14159265359
 #define WHEEL_RADIUS .042 // in meters
 #define FULL_ROTATION_EDGE_EVENTS 600 // 18.75 * 32
+#define RADS_PER_SEC_TO_RPM 9.5492965855137
 #define CLICKS_TO_RADIANS 2 * PI / FULL_ROTATION_EDGE_EVENTS
 
 class ServoMotor
@@ -56,6 +57,11 @@ class ServoMotor
   // in radians/sec
   float getAngularVelocity() {
     return angularVelocity;
+  }
+
+  // in rotations / min
+  float getRPM() {
+    return getAngularVelocity() * (float) RADS_PER_SEC_TO_RPM;
   }
 
   // in radians
