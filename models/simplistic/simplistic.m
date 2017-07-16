@@ -103,6 +103,8 @@ Dc = D;
 
 poles_LQR = eig(Ac);
 
+check = log(poles_LQR)/Ts;
+
 % Construct discrete time state-space model for state feedback simulation
 
 sys_cl = ss(Ac,Bc,Cc,Dc,Ts,'statename',states,'inputname',inputs,'outputname',outputs);
