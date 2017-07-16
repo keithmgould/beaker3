@@ -2,7 +2,7 @@
 #include <Math.h>
 
 #define PI 3.14159265359
-#define WHEEL_DIAMETER .084 // in Meters
+#define WHEEL_RADIUS .042 // in meters
 #define FULL_ROTATION_EDGE_EVENTS 600 // 18.75 * 32
 #define CLICKS_TO_RADIANS 2 * PI / FULL_ROTATION_EDGE_EVENTS
 
@@ -65,7 +65,7 @@ class ServoMotor
 
   // in meters
   float getDistance() {
-    return ((float) edgeCount / (float) FULL_ROTATION_EDGE_EVENTS) * 3.14159265 * (float) WHEEL_DIAMETER;
+    return getPhi() * (float) WHEEL_RADIUS;
   }
 
   void encoderEvent() {

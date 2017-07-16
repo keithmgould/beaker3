@@ -13,9 +13,6 @@
 // yields radian multiplier
 #define RADIAN_MULTIPLIER 0.1603
 
-// in radians. Roughly 30 degrees
-#define MAX_TILT 0.78
-
 // pi / 180, for degrees to radians
 #define PI_OVER_ONE_EIGHTY 0.017453292519943
 
@@ -30,8 +27,6 @@
 #define RH_ENCODER_B 38
 #define LH_ENCODER_A 3 // interupt pin
 #define LH_ENCODER_B 40
-
-#define MAX_GAIN 50 // be kind to your motors
 
 // We communicate with the sabertooth motor driver
 // over serial
