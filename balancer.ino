@@ -8,11 +8,6 @@
 // IMU constants
 #define BALANCED_OFFSET 0.89 // sensor does not show 0 on balance but it should.
 
-// 90 degrees in rads is 1.5708
-// Given proportion acc/9.8 = y/1.5708 solve for y
-// yields radian multiplier
-#define RADIAN_MULTIPLIER 0.1603
-
 // pi / 180, for degrees to radians
 #define PI_OVER_ONE_EIGHTY 0.017453292519943
 
@@ -22,7 +17,7 @@
 #include "servoMotor.cpp"
 #include "estimator.cpp"
 
-// pins for the motor power and encoders
+// pins for the motor encoders
 #define RH_ENCODER_A 2 // interupt pin
 #define RH_ENCODER_B 38
 #define LH_ENCODER_A 3 // interupt pin
@@ -87,9 +82,9 @@ void errorMode(const char* input) {
   updatePower(0);
   pinMode(INDICATOR, OUTPUT);
   while(true){
-    digitalWrite(INDICATOR, HIGH);
+    turnIndicatorLightOn();
     delay(300);
-    digitalWrite(INDICATOR, LOW);
+    turnIndicatorLightOff();
     delay(300);
   }
 }
@@ -102,11 +97,19 @@ float avgPhi() {
   return (motorLeft.getPhi() + motorRight.getPhi()) / 2.0;
 }
 
+void turnIndicatorLightOff(){
+  digitalWrite(INDICATOR, LOW);
+}
+
+void turnIndicatorLightOn(){
+  digitalWrite(INDICATOR, HIGH);
+}
+
 
 void setup() {
   pinMode(INDICATOR, OUTPUT);
   // turn off indicator light while we setup
-  digitalWrite(INDICATOR, LOW);
+  turnIndicatorLightOff();
 
   // Open serial communications
   // and wait for port to open:
@@ -137,7 +140,7 @@ void setup() {
   estimator.init();
 
   // Turn on indicator light because we are ready to rock.
-  digitalWrite(INDICATOR, HIGH);
+  turnIndicatorLightOn();
 
   // now that light is on, allow human to get the robot upright
   delay(2000);
