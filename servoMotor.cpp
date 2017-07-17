@@ -12,6 +12,7 @@ class ServoMotor
   private:
   Averager averager;
   int edgeCount;
+  int lastEdgeCount;
   int firstEncoderPin, secondEncoderPin, tickDirection;
   float angularVelocity;
   long secSinceLastMeasure;
@@ -45,6 +46,7 @@ class ServoMotor
     secSinceLastMeasure = micros();
     angularVelocity = 0;
     edgeCount = 0;
+    lastEdgeCount = 0;
   }
 
   // in radians/sec
@@ -64,6 +66,23 @@ class ServoMotor
   // in radians/sec
   float getAngularVelocity() {
     return angularVelocity;
+  }
+
+  int edgeDif(){
+    int delta = abs(lastEdgeCount - edgeCount);
+    lastEdgeCount = edgeCount;
+    return delta;
+  }
+
+  // float getOtherAngularVelocity(long timestep) {
+  //   int delta = abs(lastEdgeCount - edgeCount);
+  //   lastEdgeCount = edgeCount;
+  //   return ((float) CLICKS_TO_RADIANS * (float) delta) / ((float) timestep / (float) 1000);
+  // }
+
+  // in rotations / min
+  float getOtherRPM(float angVel) {
+    return angVel * (float) RADS_PER_SEC_TO_RPM;
   }
 
   // in rotations / min
