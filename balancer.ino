@@ -76,6 +76,14 @@ void updatePower(float newGain){
   sabertooth.motor(2, amplifiedGain);
 }
 
+void turnIndicatorLightOff(){
+  digitalWrite(INDICATOR, LOW);
+}
+
+void turnIndicatorLightOn(){
+  digitalWrite(INDICATOR, HIGH);
+}
+
 // kill motors and blink status indicator
 void errorMode(const char* input) {
   Serial.println(input);
@@ -96,15 +104,6 @@ float avgXPos() {
 float avgPhi() {
   return (motorLeft.getPhi() + motorRight.getPhi()) / 2.0;
 }
-
-void turnIndicatorLightOff(){
-  digitalWrite(INDICATOR, LOW);
-}
-
-void turnIndicatorLightOn(){
-  digitalWrite(INDICATOR, HIGH);
-}
-
 
 void setup() {
   pinMode(INDICATOR, OUTPUT);
