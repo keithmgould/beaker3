@@ -160,6 +160,6 @@ void loop() {
   // theta in radians
   currentTheta = accToRadians(-Acceleration.z());
 
-  float newGain = estimator.update(avgPhi(),currentTheta, angularVelocity);
-  updatePower(newGain);
+  float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);
+  // updatePower(newGain);
 }

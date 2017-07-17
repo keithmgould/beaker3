@@ -1,7 +1,7 @@
 #include "Arduino.h"
+#include "averager.cpp"
 #include <Math.h>
 
-#define PI 3.14159265359
 #define WHEEL_RADIUS .042 // in meters
 #define FULL_ROTATION_EDGE_EVENTS 600 // 18.75 * 32
 #define RADS_PER_SEC_TO_RPM 9.5492965855137
@@ -10,6 +10,7 @@
 class ServoMotor
 {
   private:
+  Averager averager;
   int edgeCount;
   int firstEncoderPin, secondEncoderPin, tickDirection;
   float angularVelocity;
@@ -51,12 +52,23 @@ class ServoMotor
     long secNow = micros();
     float secDelta = (float) (secNow - secSinceLastMeasure) / 1000000;
     angularVelocity = (float) CLICKS_TO_RADIANS / secDelta;
+    averager.push(angularVelocity);
     secSinceLastMeasure = secNow;
+  }
+
+  // in radians/sec
+  float getAvgAngularVelocity() {
+    return averager.getAvg();
   }
 
   // in radians/sec
   float getAngularVelocity() {
     return angularVelocity;
+  }
+
+  // in rotations / min
+  float getAvgRPM() {
+    return getAvgAngularVelocity() * (float) RADS_PER_SEC_TO_RPM;
   }
 
   // in rotations / min

@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 #include <SabertoothSimplified.h>
-#include "../servoMotor.cpp"
+#include "../../servoMotor.cpp"
 
 // indicator light on robot
 #define INDICATOR 36
@@ -27,6 +27,9 @@ long timeMarker;
 
 float prevError;
 float prevU;
+float avg_speed_total;
+float last_speed_val;
+int value_count;
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, -1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, 1);
@@ -95,17 +98,17 @@ void loop(){
   if((millis() - timeMarker) < TIMESTEP){return;}
   timeMarker = millis();
 
-  float av = motorLeft.getAngularVelocity();
-  float current_rpm = motorLeft.getRPM();
+  float currentRpm = motorLeft.getRPM();
+  float currentAvgRpm = motorLeft.getAvgRPM();
 
-  float error = SETSPEED_RPM - current_rpm;
+  float error = SETSPEED_RPM - currentAvgRpm;
   float newU = prevU + P_CONTROL * error - I_CONTROL * prevError;
 
   Serial.print(error,5);
   Serial.print(", ");
-  Serial.print(prevError,5);
+  Serial.print(currentRpm,5);
   Serial.print(", ");
-  Serial.print(current_rpm,5);
+  Serial.print(currentAvgRpm,5);
   Serial.print(", ");
   Serial.println(newU);
   updatePower(newU);
