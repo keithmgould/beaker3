@@ -103,12 +103,12 @@ void loop(){
   long delta = millis() - timeMarker;
   if(delta < TIMESTEP){return;}
   timeMarker = millis();
-
+  int edgeDif = motorLeft.edgeDif();
   float currentRpm = motorLeft.getRPM();
   float currentAvgRpm = motorLeft.getAvgRPM();
   float av = motorLeft.getAngularVelocity();
-  int edgeDif = motorLeft.edgeDif();
-  int edgeCount = motorLeft.getEdgeCount();
+
+
   // float otherAV = motorLeft.getOtherAngularVelocity(delta);
   // float currentOtherRpm = otherAV * 9.5492965855137;
 
@@ -123,7 +123,6 @@ void loop(){
   stm << std::setprecision(5);
   stm << delta << ",";
   stm << error << ",";
-  stm << edgeCount << ",";
   stm << av << ",";
   stm << edgeDif << ", ";
   stm << currentAvgRpm << ", ";
