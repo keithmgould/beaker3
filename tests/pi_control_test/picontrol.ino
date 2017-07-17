@@ -1,3 +1,8 @@
+#include <StandardCplusplus.h>
+#include <iostream>
+#include <string>
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
 #include <SoftwareSerial.h>
 #include <SabertoothSimplified.h>
 #include "../../servoMotor.cpp"
@@ -95,24 +100,32 @@ void setup(){
 }
 
 void loop(){
-  if((millis() - timeMarker) < TIMESTEP){return;}
+  long delta = millis() - timeMarker;
+  if(delta < TIMESTEP){return;}
   timeMarker = millis();
 
   float currentRpm = motorLeft.getRPM();
   float currentAvgRpm = motorLeft.getAvgRPM();
+  float av = motorLeft.getAngularVelocity();
+  int wtf = motorLeft.edgeDif();
+  // float otherAV = motorLeft.getOtherAngularVelocity(delta);
+  // float currentOtherRpm = otherAV * 9.5492965855137;
 
   float error = SETSPEED_RPM - currentAvgRpm;
   float newU = prevU + P_CONTROL * error - I_CONTROL * prevError;
-
-  Serial.print(error,5);
-  Serial.print(", ");
-  Serial.print(currentRpm,5);
-  Serial.print(", ");
-  Serial.print(currentAvgRpm,5);
-  Serial.print(", ");
-  Serial.println(newU);
-  updatePower(newU);
-
   prevError = error;
   prevU = newU;
+  updatePower(newU);
+
+  std::stringstream stm;
+  stm << std::fixed;
+  stm << std::setprecision(5);
+  stm << delta << ",";
+  stm << error << ",";
+  stm << av << ",";
+  stm << wtf << ", ";
+  // stm << otherAV << ",";
+  stm << newU;
+  std::string str = stm.str();
+  Serial.println(str.c_str());
 }
