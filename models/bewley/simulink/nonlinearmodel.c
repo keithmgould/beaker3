@@ -26,7 +26,7 @@
  * | See matlabroot/simulink/src/sfuntmpl_doc.c for a more detailed template |
  *  ------------------------------------------------------------------------- 
  *
- * Created: Sat Jul 15 16:14:07 2017
+ * Created: Mon Jul 17 18:41:27 2017
  */
 
 #define S_FUNCTION_LEVEL 2
@@ -76,7 +76,7 @@
 #define NUM_DISC_STATES       0
 #define DISC_STATES_IC        [0]
 #define NUM_CONT_STATES       4
-#define CONT_STATES_IC        [0,0,0,0]
+#define CONT_STATES_IC        [0,0,0.02,0]
 
 #define SFUNWIZ_GENERATE_TLC  1
 #define SOURCEFILES           "__SFB__"
@@ -174,7 +174,7 @@ static void mdlInitializeConditions(SimStruct *S)
 
     xC[0] = 0;
     xC[1] = 0;
-    xC[2] = 0;
+    xC[2] = 0.02;
     xC[3] = 0;
 }
 

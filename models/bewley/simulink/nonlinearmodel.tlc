@@ -1,5 +1,5 @@
 %% File : nonlinearmodel.tlc
-%% Created : Sat Jul 15 16:14:07 2017
+%% Created : Mon Jul 17 18:41:27 2017
 %%
 %% Description: 
 %%   Simulink Coder wrapper functions interface generated for 
@@ -52,7 +52,7 @@
 
   xC[0] = 0;
   xC[1] = 0;
-  xC[2] = 0;
+  xC[2] = 0.02;
   xC[3] = 0;
 }
 
