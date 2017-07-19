@@ -15,7 +15,7 @@ fl = 2*l;
 th = y(3);
 
 % pendulum position
-px = wx - fl*sin(th);
+px = wx + fl*sin(th);
 py = fl*cos(th);
 
 % draw the ground
