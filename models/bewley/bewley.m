@@ -149,15 +149,15 @@ sys_cl = ss(Ac,Bc,Cc,Dc,Ts,'statename',states,'inputname',inputs,'outputname',ou
 %% Now lets simulate. 
 
 %Initial conditions
-y0 = [5; 0; 0.04; 0];
+y0 = [0; 0; 0.05; 0];
 tspan = 0:.001:5;
 
 % closed loop:
-[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
+% [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
 
 % open loop:
-%   [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
+[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
 
-for k=1:100:length(t)
+for k=1:25:length(t)
     drawpend(y(k,:),r,l);
 end
