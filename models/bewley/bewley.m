@@ -83,6 +83,9 @@ R = 10000;
 % Find LQR gain Matrix K and new poles e
 [K,S,e] = dlqr(A,B,Q,R);
 
+% check the poles
+poles_from_dlqr = log(e)/Ts;
+
 %% Calculate continuous K for non-linear simulation below
 
 cont_K = lqr(a, b, Q, R);
@@ -149,31 +152,31 @@ sys_cl = ss(Ac,Bc,Cc,Dc,Ts,'statename',states,'inputname',inputs,'outputname',ou
 %% Now lets simulate. 
 
 %Initial conditions
-y0 = [0; 0; 0.05; 0];
+y0 = [0; 0; 0.02; 0];
 tspan = 0:.001:5;
 
 % closed loop:
-% [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
+[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
 
 % open loop:
-[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
-
+% [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
+% 
 figure;
 plot(t, y(:,1));
-title('phi');
+title('non-linear phi (wheels)');
 
 figure;
 plot(t, y(:,2));
-title('phi dot');
+title('non-linear phi dot (wheels)');
 
 figure;
 plot(t, y(:,3));
-title('theta');
+title('non-linear theta (body)');
 
 figure;
 plot(t, y(:,4));
-title('theta dot');
-
-for k=1:100:length(t)
-    drawpend(y(k,:),r,l);
-end
+title('non-linear theta dot (body)');
+% 
+% for k=1:100:length(t)
+%     drawpend(y(k,:),r,l);
+% end
