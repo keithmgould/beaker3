@@ -77,7 +77,7 @@ double theta_dd;
 Sy = sin(xC[2]);
 Cy = cos(xC[2]);
 
-denom = -m__b*m__b*r*r*l*l*Cy*Cy+(m__b*r*r+m__w*r*r+I__w)*l*l*m__b+I__b*(m__b*r*r+m__w*r*r+I__w);
+denom = (-m__b*m__b*r*r*l*l*Cy*Cy+(m__b*r*r+m__w*r*r+I__w)*l*l*m__b+I__b*(m__b*r*r+m__w*r*r+I__w));
 phi_dd = (1/denom)*(Sy*(xC[3]*xC[3])*l*l*l*m__b*m__b*r-Cy*Sy*g*l*l*m__b*m__b*r+I__b*Sy*(xC[3]*xC[3])*l*m__b*r+Cy*l*m__b*r*u0[0]+l*l*m__b*u0[0]+I__b*u0[0]);
 theta_dd = (1/denom)*(-Cy*Sy*(xC[3]*xC[3])*l*l*m__b*m__b*r*r+(m__b*r*r+m__w*r*r+I__w)*Sy*g*l*m__b-Cy*l*m__b*r*u0[0]-(m__b*r*r+m__w*r*r+I__w)*u0[0]);
 
@@ -85,5 +85,22 @@ dx[0] = xC[1];
 dx[1] = phi_dd;
 dx[2] = xC[3];
 dx[3] = theta_dd;
+
+
+/*
+double m = 1;
+double M = 5;
+double L = 2;
+double g = -10;
+double d = 1;
+double Sy;
+double Cy;
+Sy = sin(xC[2]);
+Cy = cos(xC[2]);
+dx[0] = xC[1];
+dx[1] = (1/(m*L*L*(M+m*(1-Cy*Cy))))*(-1*m*m*L*L*g*Cy*Sy + m*L*L*(m*L*xC[3]*xC[3]*Sy - d*xC[1])) + m*L*L*(1/(m*L*L*(M+m*(1-Cy*Cy))))*u0[0];
+dx[2] = xC[3];
+dx[3] = (1/(m*L*L*(M+m*(1-Cy*Cy))))*((m+M)*m*g*L*Sy - m*L*Cy*(m*L*xC[3]*xC[3]*Sy - d*xC[1])) - m*L*Cy*(1/(m*L*L*(M+m*(1-Cy*Cy))))*u0[0];
+ */
 /* %%%-SFUNWIZ_wrapper_Derivatives_Changes_END --- EDIT HERE TO _BEGIN */
 }

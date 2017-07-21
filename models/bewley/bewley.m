@@ -158,6 +158,22 @@ tspan = 0:.001:5;
 % open loop:
 [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
 
-for k=1:25:length(t)
+figure;
+plot(t, y(:,1));
+title('phi');
+
+figure;
+plot(t, y(:,2));
+title('phi dot');
+
+figure;
+plot(t, y(:,3));
+title('theta');
+
+figure;
+plot(t, y(:,4));
+title('theta dot');
+
+for k=1:100:length(t)
     drawpend(y(k,:),r,l);
 end
