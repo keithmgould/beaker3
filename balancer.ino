@@ -106,6 +106,22 @@ float avgPhi() {
   return (motorLeft.getPhi() + motorRight.getPhi()) / 2.0;
 }
 
+// in radians
+float rawTheta() {
+  // Linear Acceleration in meters per second squared
+  imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+
+  return accToRadians(-Acceleration.z());
+}
+
+// radians per second
+float rawAngularVelocity(){
+  // Angular velocity in degrees per second (needs to be converted)
+  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+
+  return degToRadians(RotationalVelocity.y());
+}
+
 void setup() {
   pinMode(INDICATOR, OUTPUT);
   // turn off indicator light while we setup
@@ -150,16 +166,9 @@ void loop() {
   if((millis() - timeMarker) < TIMESTEP){return;}
   timeMarker = millis();
 
-  // Linear Acceleration in meters per second squared
-  imu::Vector<3> Acceleration = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  // update estimator, receive new marching orders
+  float newGain = estimator.update(avgPhi(), rawTheta(), rawAngularVelocity());
 
-  // Angular velocity in radians per second
-  imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-  float angularVelocity = degToRadians(RotationalVelocity.y());
-
-  // theta in radians
-  currentTheta = accToRadians(-Acceleration.z());
-
-  float newGain = estimator.update(avgXPos(),currentTheta, angularVelocity);
-  // updatePower(newGain);
+  // update motor gain
+  updatePower(newGain);
 }
