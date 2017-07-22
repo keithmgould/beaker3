@@ -3,7 +3,7 @@
 #include <Math.h>
 
 #define WHEEL_RADIUS .042 // in meters
-#define FULL_ROTATION_EDGE_EVENTS 600 // 18.75 * 32
+#define FULL_ROTATION_EDGE_EVENTS 300 // 18.75 * 16
 #define RADS_PER_SEC_TO_RPM 9.5492965855137
 #define CLICKS_TO_RADIANS 2 * PI / FULL_ROTATION_EDGE_EVENTS
 
@@ -50,15 +50,6 @@ class ServoMotor
   }
 
   // in radians/sec
-  void computeAngularVelocity(){
-    long secNow = micros();
-    float secDelta = (float) (secNow - secSinceLastMeasure) / 1000000;
-    angularVelocity = (float) CLICKS_TO_RADIANS / secDelta;
-    averager.push(angularVelocity);
-    secSinceLastMeasure = secNow;
-  }
-
-  // in radians/sec
   float getAvgAngularVelocity() {
     return averager.getAvg();
   }
@@ -68,17 +59,21 @@ class ServoMotor
     return angularVelocity;
   }
 
-  int edgeDif(){
-    int delta = abs(lastEdgeCount - edgeCount);
+  // in radians/sec
+  float getOtherAngularVelocity(long loopTime) {
+    // calculate edgeDelta (how many encoder clicks)
+    float edgeDelta = (float) abs(edgeCount - lastEdgeCount);
     lastEdgeCount = edgeCount;
-    return delta;
-  }
 
-  // float getOtherAngularVelocity(long timestep) {
-  //   int delta = abs(lastEdgeCount - edgeCount);
-  //   lastEdgeCount = edgeCount;
-  //   return ((float) CLICKS_TO_RADIANS * (float) delta) / ((float) timestep / (float) 1000);
-  // }
+    // convert from millis to seconds
+    float loopTimeSec = (float) loopTime / 1000;
+
+    //get our radians
+    float radians = CLICKS_TO_RADIANS * edgeDelta;
+
+    // return radians per second
+    return radians / loopTimeSec;
+  }
 
   // in rotations / min
   float getOtherRPM(float angVel) {
@@ -110,7 +105,6 @@ class ServoMotor
   }
 
   void encoderEvent() {
-    computeAngularVelocity();
     if(digitalRead(firstEncoderPin) == digitalRead(secondEncoderPin)){
       tickLeft();
     } else {

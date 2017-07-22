@@ -1,3 +1,8 @@
+#include <StandardCplusplus.h>
+#include <iostream>
+#include <string>
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
 #include <BasicLinearAlgebra.h>
 #include <kalman.h>
 
@@ -16,20 +21,18 @@ public:
 
   Estimator(){
 
-  // Discrete A-Matrix
-A << 1,0.02,0.0012156,8.0996e-06,
-0,1,0.12171,0.0012156,
-0,-4.1282e-08,1.0075,0.02005,
-0,-4.1334e-06,0.75343,1.0075;
+    // Discrete A-Matrix
+    A << 1,0.02,-0.027862,-0.00018565,
+       0,1,-2.7897,-0.027862,
+       0,0,1.0076,0.020051,
+       0,0,0.76432,1.0076;
 
 
     // Discrete B-Matrix
-  B << 0.00017421,
-0.01743,
-0.00041282,
-0.041334;
-
-
+    B << 0.1018,
+       10.186,
+       -0.012042,
+       -1.2058;
 
     // observe xpos, theta, thetaDot
     C << 1, 0, 0, 0,
@@ -51,7 +54,7 @@ A << 1,0.02,0.0012156,8.0996e-06,
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.87253,-2.2035,41.208,7.1118;
+    K << -0.008439,-0.014151,-2.0355,-0.37787;
   }
 
   void init(){
@@ -63,34 +66,41 @@ A << 1,0.02,0.0012156,8.0996e-06,
     kf.init(x0);
   }
 
-  float update(const float xPos, const float theta, const float thetaDot){
+  float update(const long loopTime, const float xPos, const float theta, const float thetaDot){
     y << xPos, theta, thetaDot;
+    long beforeUpdate = millis();
     kf.update(y, gain);
+    long updateTime = millis() - beforeUpdate;
     gain = (-K * kf.state())(0,0);
-    print();
+    print(loopTime, updateTime);
     return gain;
   }
 
 private:
 
-  void printStates(){
+  void printStates(std::stringstream &stm){
     for(int n = 0; n < STATES; n++){
-      Serial.print(kf.state()(n,0), 5);
-      Serial.print(',');
+      stm <<  kf.state()(n,0) << ",";
     }
   }
 
-  void printObservations(){
+  void printObservations(std::stringstream &stm){
     for(int n = 0; n < OBVS; n++){
-      Serial.print(y(n,0), 5);
-      Serial.print(',');
+      stm << y(n,0) << ",";
     }
   }
 
-  void print(){
-    printObservations();
-    printStates();
-    Serial.println(gain, 5);
+  void print(long loopTime, long updateTime){
+    std::stringstream stm;
+    stm << std::fixed;
+    stm << std::setprecision(5);
+    stm << loopTime << ",";
+    stm << updateTime << ",";
+    // printObservations(stm);
+    // printStates(stm);
+    // stm << gain;
+    std::string str = stm.str();
+    Serial.println(str.c_str());
   }
 
   float gain;

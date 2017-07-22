@@ -136,8 +136,8 @@ void setup() {
   motorLeft.init();
   motorRight.init();
   delay(100);
-  attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, RISING);
+  attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, RISING);
 
   // Sabertooth motor driver commanded over Serial
   SWSerial.begin(9600);
@@ -163,12 +163,13 @@ void setup() {
 }
 
 void loop() {
-  if((millis() - timeMarker) < TIMESTEP){return;}
+  long timeDelta = millis() - timeMarker;
+  if(timeDelta < TIMESTEP){return;}
   timeMarker = millis();
 
   // update estimator, receive new marching orders
-  float newGain = estimator.update(avgPhi(), rawTheta(), rawAngularVelocity());
+  float newGain = estimator.update(timeDelta, avgPhi(), rawTheta(), rawAngularVelocity());
 
   // update motor gain
-  updatePower(newGain);
+  // updatePower(newGain);
 }

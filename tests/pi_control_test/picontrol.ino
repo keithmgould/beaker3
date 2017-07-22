@@ -21,7 +21,7 @@
 #define SerialTX 18
 
 // target speed in rpm
-#define SETSPEED_RPM 120
+#define SETSPEED_RPM 300
 #define P_CONTROL 0.05
 #define I_CONTROL 0.03
 
@@ -29,6 +29,7 @@
 #define TIMESTEP 20
 
 long timeMarker;
+long leftOver;
 
 float prevError;
 float prevU;
@@ -86,8 +87,8 @@ void setup(){
   motorLeft.init();
   motorRight.init();
   delay(100);
-  attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, RISING);
+  attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, RISING);
 
   // Sabertooth motor driver commanded over Serial
   SWSerial.begin(9600);
@@ -97,22 +98,18 @@ void setup(){
   prevError = 0;
   prevU = 0;
   timeMarker = millis();
+  leftOver = 0;
 }
 
 void loop(){
   long delta = millis() - timeMarker;
-  if(delta < TIMESTEP){return;}
+  if(delta < TIMESTEP){leftOver++; return;}
   timeMarker = millis();
-  int edgeDif = motorLeft.edgeDif();
-  float currentRpm = motorLeft.getRPM();
-  float currentAvgRpm = motorLeft.getAvgRPM();
-  float av = motorLeft.getAngularVelocity();
 
+  float otherAV = motorLeft.getOtherAngularVelocity(delta);
+  float otherRpm = otherAV * 9.5492965855137;
 
-  // float otherAV = motorLeft.getOtherAngularVelocity(delta);
-  // float currentOtherRpm = otherAV * 9.5492965855137;
-
-  float error = SETSPEED_RPM - currentAvgRpm;
+  float error = SETSPEED_RPM - otherRpm;
   float newU = prevU + P_CONTROL * error - I_CONTROL * prevError;
   prevError = error;
   prevU = newU;
@@ -123,10 +120,10 @@ void loop(){
   stm << std::setprecision(5);
   stm << delta << ",";
   stm << error << ",";
-  stm << av << ",";
-  stm << edgeDif << ", ";
-  stm << currentAvgRpm << ", ";
-  stm << newU;
+  stm << otherAV << ",";
+  stm << otherRpm << ",";
+  stm << leftOver;
   std::string str = stm.str();
   Serial.println(str.c_str());
+  leftOver = 0;
 }
