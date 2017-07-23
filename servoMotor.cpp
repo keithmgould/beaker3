@@ -31,6 +31,14 @@ class ServoMotor
   public:
   //-------------------------------------------------------------------
 
+  void computeAngularVelocity(){
+    long secNow = micros();
+    float secDelta = (float) (secNow - secSinceLastMeasure) / 1000000;
+    angularVelocity = (float) CLICKS_TO_RADIANS / secDelta;
+    averager.push(angularVelocity);
+    secSinceLastMeasure = secNow;
+  }
+
   ServoMotor(int firstEncoderPinArg, int secondEncoderPinArg, int tickDirectionArg)
   {
     firstEncoderPin = firstEncoderPinArg;
@@ -110,5 +118,6 @@ class ServoMotor
     } else {
       tickRight();
     }
+    computeAngularVelocity();
   }
 };

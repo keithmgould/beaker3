@@ -55,11 +55,12 @@ class Averager
     array_values[fillPosition] = newVal;
     if(stillFilling == true && fillPosition == AVERAGE_LENGTH - 1) { stillFilling = false; }
     fillPosition = (fillPosition + 1) % AVERAGE_LENGTH;
-    calculateAverage();
   }
 
   float getAvg()
   {
+    calculateAverage();
+
     return avg;
   }
 };

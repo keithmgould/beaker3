@@ -90,10 +90,11 @@ private:
     }
   }
 
+  // loopTime, updateTime, o1,o2,o3, s1, s2, s3, s4
   void print(long loopTime, long updateTime){
     std::stringstream stm;
     stm << std::fixed;
-    stm << std::setprecision(5);
+    stm << std::setprecision(2);
     stm << loopTime << ",";
     stm << updateTime << ",";
     // printObservations(stm);
