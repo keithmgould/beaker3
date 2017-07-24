@@ -1,0 +1,7 @@
+*.c
+*.csv
+*.mat
+*.mexmaci64
+*.tlc
+*.bak
+rtwmakecfg.m
