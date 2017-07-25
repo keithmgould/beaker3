@@ -118,6 +118,6 @@ class ServoMotor
     } else {
       tickRight();
     }
-    computeAngularVelocity();
+    // computeAngularVelocity();
   }
 };
