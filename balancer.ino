@@ -33,8 +33,8 @@
 // 4  => 250hz
 #define TIMESTEP 20
 
-ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, -1);
-ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, 1);
+ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
+ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
 Estimator estimator;
 
 SoftwareSerial SWSerial(NOT_A_PIN, SerialTX); // RX on no pin (unused). Tx to S1.
@@ -69,9 +69,11 @@ float degToRadians(float deg) {
 
 void updatePower(float newGain){
   // safety first
-  if(newGain > 1){newGain = 1;}
-  if(newGain < -1){newGain = -1;}
-  float amplifiedGain = newGain * 40; // up to +/-127
+  newGain = newGain * -100;
+
+  if(newGain > 40){newGain = 40;}
+  if(newGain < -40){newGain = -40;}
+  float amplifiedGain = newGain; // up to +/-127
 
   sabertooth.motor(1, amplifiedGain);
   sabertooth.motor(2, amplifiedGain);
@@ -98,11 +100,13 @@ void errorMode(const char* input) {
   }
 }
 
-float avgXPos() {
+// in meters
+float rawXPos() {
   return (motorLeft.getDistance() + motorRight.getDistance()) / 2.0;
 }
 
-float avgPhi() {
+// in radians
+float rawPhi() {
   return (motorLeft.getPhi() + motorRight.getPhi()) / 2.0;
 }
 
@@ -115,7 +119,7 @@ float rawTheta() {
 }
 
 // radians per second
-float rawAngularVelocity(){
+float rawThetaDot(){
   // Angular velocity in degrees per second (needs to be converted)
   imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
@@ -168,8 +172,8 @@ void loop() {
   timeMarker = millis();
 
   // update estimator, receive new marching orders
-  float newGain = estimator.update(timeDelta, avgPhi(), rawTheta(), rawAngularVelocity());
+  float newGain = estimator.update(timeDelta, rawPhi(), rawTheta(), rawThetaDot());
 
   // update motor gain
-  // updatePower(newGain);
+  updatePower(newGain);
 }
