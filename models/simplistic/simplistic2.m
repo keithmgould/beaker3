@@ -1,41 +1,33 @@
 clear;
 
 
-%% Build a and b matrix for Mobile Inverted Pendulum
-
-% For Equations of Motion,
-% see http://fccr.ucsd.edu/pubs/NR.pdf
-% page 504
-
-% For solution to above equations, solving
-% for phi double dot and theta double dot, see 
-% accompanying bewley_maple.mw file,
-% which requires Maple software.
-
 % properties of robot and earth
-m__w  = 0.2;        % mass of both wheels (kg)
-m__b  = 1.66;       % mass of body (kg)
-I__b  = .069;       % inertia of body
-I__w  = .0001764;   % inertia of both wheels
-g     = 9.81;       % gravity yo. (m/s/s)
-l     = 0.181;      % length from wheels to robot's COM (meters)
-r     = 0.042;      % radius of wheel (meters)
+M  = 0.2;       % mass of both wheels kg
+m  = 1.66;      % mass of body kg
+g  = 9.8;       % gravity yo.
+l  = 0.181;     % length from wheels to robot's COM (meters)
+bf = 0.001;    % friction between wheels and floor
+r = 0.0045;
 
-% massive denominator
-denom = -l^2*m__b^2*r^2+(l^2*m__b+I__b)*(m__b*r^2+m__w*r^2+I__w);
+% calculations
+Lfull = l * 2;              % full length or robot
+I  = (1/3)* m * Lfull^2;    % rotational intertia of robot ( was .071)
+denom = (I*(M+m)+M*l^2*m);
 
-% 'a' matrix prep
-a23 = -m__b^2*g*l^2*r / denom;
-a43 = (m__b*r^2+m__w*r^2+I__w)*g*l*m__b / denom;
+% matrix prep
+a22 = -bf*(m*l^2+I) / denom;
+a23 = m^2*g*l^2 / denom;
+a42 = -bf*m*l / denom;
+a43 = m*l*g*(M + m) / denom;
 
-a = [0 1  0  0;
-     0 0 a23 0;
-     0 0  0  1;
-     0 0 a43 0];
+a = [ 0 1   0   0;
+      0 a22 a23 0;
+      0 0   0   1;
+      0 a42 a43 0;
+    ];
 
-% 'b' matrix prep
-b2 = (l^2*m__b+l*m__b*r+I__b) / denom;
-b4 = (-l*m__b*r-m__b*r^2-m__w*r^2-I__w) / denom;
+b2 = (I + m * l^2) / denom;
+b4 = m * l / denom;
 
 b = [0; b2; 0; b4];
 
@@ -68,14 +60,14 @@ D = sys_d.d;
 
 % Note that log(poles_discrete)/Ts == poles_continuous
 poles_discrete = eig(A);
-        
+
 %% Prepare for LQR
 
 % State Weights for Q weight matrix
 w = 1;          % phi state variable weight
 x = 1;          % phiDot state variable weight
-y = 100;          % theta state variable weight
-z = 100;          % thetaDot state variable weight
+y = 1000;          % theta state variable weight
+z = 1;          % thetaDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
 Q = [w 0 0 0;
@@ -89,8 +81,8 @@ R = 10000;
 % Find LQR gain Matrix K and new poles e
 [K,S,e] = dlqr(A,B,Q,R);
 
-% Not sure what is going on here:
-something_from_dlqr = log(e)/Ts;
+% check the poles
+poles_from_dlqr = log(e)/Ts;
 
 %% Manual Pole Placement
 
@@ -120,6 +112,7 @@ Cc = C;
 Dc = D;
 
 % Closed loop poles from state feedback
+
 poles_LQR = eig(Ac);
 
 % Construct discrete time state-space model for state feedback simulation
@@ -138,59 +131,61 @@ t = 0:Ts:10;
 % Set initial conditions for simulation
 x0=[0 2 .02 0];     % Inintial angle: 0.2 radians
 
-% [y,t,x]=initial(sys_cl,x0,t);
+[y,t,x]=initial(sys_cl,x0,t);
 
 % Plot all state output
 
-% figure;
-% plot(t,y(:,1),t,y(:,2));
-% legend('phi','phiDot')
-% title('Response with Digital LQR Control')
-% 
-% 
+figure;
+plot(t,y(:,1),t,y(:,2));
+legend('phi','phiDot')
+title('Response with Digital LQR Control')
+%
+%
 % % Plot all state output
-% 
-% figure;
-% plot(t,y(:,3),t,y(:,4));
-% legend('theta','thetaDot')
-% title('Response with Digital LQR Control')
-% 
+%
+figure;
+plot(t,y(:,3),t,y(:,4));
+legend('theta','thetaDot')
+title('Response with Digital LQR Control')
+%
 % %Plot control input due to LQR state feedback gain
-% 
-% figure;
-% plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
-% legend('Voltage Applied')
-% title('Control Input from Digital LQR Control')
+%
+figure;
+plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
+legend('Voltage Applied')
+title('Control Input from Digital LQR Control')
 
 %% Now lets simulate.
 
 %Initial conditions
-y0 = [0; 2; 0.10; 0];
+y0 = [0; 0; 0.10; 0];
 tspan = 0:.001:5;
 
-% closed loop:
-[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
+I__b = I;
+m__b = m;
+m__w = M;
 
-% open loop:
-% [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
+% closed loop:
+[t,y] = ode45(@(t,y)odes(y,I__b,m__b,m__w,bf,l,-g,-cont_K*y),tspan,y0);
+
 %
 % figure;
 % subplot(2,3,1);
 % plot(t, y(:,1));
 % title('non-linear phi (wheels)');
-% 
+%
 % subplot(2,3,2);
 % plot(t, y(:,2));
 % title('non-linear phi dot (wheels)');
-% 
+%
 % subplot(2,3,3);
 % plot(t, y(:,3));
 % title('non-linear theta (body)');
-% 
+%
 % subplot(2,3,4);
 % plot(t, y(:,4));
 % title('non-linear theta dot (body)');
-% 
+%
 % subplot(2,3,5);
 % plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
 % title('gain u');

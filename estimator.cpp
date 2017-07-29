@@ -23,16 +23,15 @@ public:
 
     // Discrete A-Matrix
     A << 1,0.02,-0.027862,-0.00018565,
-       0,1,-2.7897,-0.027862,
-       0,0,1.0076,0.020051,
-       0,0,0.76432,1.0076;
-
+         0,1,-2.7897,-0.027862,
+         0,0,1.0076,0.020051,
+         0,0,0.76432,1.0076;
 
     // Discrete B-Matrix
     B << 0.1018,
-       10.186,
-       -0.012042,
-       -1.2058;
+         10.186,
+         -0.012042,
+         -1.2058;
 
     // observe xpos, theta, thetaDot
     C << 1, 0, 0, 0,
@@ -47,14 +46,19 @@ public:
 
     // Measurement noise covariance
     R << 0.0001, 0, 0,
-         0, 0.001, 0,
-         0, 0, 0.001;
+         0, 0.1, 0,
+         0, 0, 0.000001;
 
     // Initial Estimate error covariance
     P0.Fill(0);
 
     // DLQR generated gain
-    K << -0.008439,-0.014151,-2.0355,-0.37787;
+    K << -0.008439,-0.014151,-2.0355,-0.37787; // DLQR
+    // K << -0.0005,   -0.0017,   -1.0742,   -0.1798; // DLQR less on phi
+    // K <<  -0.0002,   -0.0009,   -1.0276,   -0.1695;
+    // K << -0.0001,   -0.0005,   -1.0040,   -0.1643;
+    // K << -0.0032, -0.0060, -1.3451, -0.2323; // manual
+
   }
 
   void init(){
@@ -78,15 +82,23 @@ public:
 
 private:
 
+  // Because sending too much over
+  // Serial slows things down.
+  float boundFloat(float val){
+    val = val > 100 ? 100 : val;
+    val = val < -100 ? -100 : val;
+    return val;
+  }
+
   void printStates(std::stringstream &stm){
     for(int n = 0; n < STATES; n++){
-      stm <<  kf.state()(n,0) << ",";
+      stm << boundFloat(kf.state()(n,0)) << ",";
     }
   }
 
   void printObservations(std::stringstream &stm){
     for(int n = 0; n < OBVS; n++){
-      stm << y(n,0) << ",";
+      stm << boundFloat(y(n,0)) << ",";
     }
   }
 
@@ -95,11 +107,12 @@ private:
     std::stringstream stm;
     stm << std::fixed;
     stm << std::setprecision(2);
-    stm << loopTime << ",";
-    stm << updateTime << ",";
-    // printObservations(stm);
-    // printStates(stm);
-    // stm << gain;
+    // stm << loopTime << ",";
+    // stm << updateTime << ",";
+    printObservations(stm);
+    printStates(stm);
+    stm << std::setprecision(5);
+    // stm << boundFloat(gain);
     std::string str = stm.str();
     Serial.println(str.c_str());
   }

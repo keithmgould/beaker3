@@ -68,15 +68,17 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
-  // safety first
-  newGain = newGain * -100;
+  // dont be noisy
+  // if(abs(newGain) < .01 ){newGain = 0;}
 
-  if(newGain > 40){newGain = 40;}
-  if(newGain < -40){newGain = -40;}
-  float amplifiedGain = newGain; // up to +/-127
+  newGain = newGain * -1000;
 
-  sabertooth.motor(1, amplifiedGain);
-  sabertooth.motor(2, amplifiedGain);
+  // safety first. up to +/-127
+  if(newGain > 10){newGain = 10;}
+  if(newGain < -10){newGain = -10;}
+
+  sabertooth.motor(1, newGain);
+  sabertooth.motor(2, newGain);
 }
 
 void turnIndicatorLightOff(){
