@@ -15,8 +15,7 @@
 // LED on side of robot
 #define INDICATOR 36
 
-#include "servoMotor.cpp"
-#include "estimator.cpp"
+#include "../../servoMotor.cpp"
 
 // pins for the motor encoders
 #define RH_ENCODER_A 2 // interupt pin
@@ -34,8 +33,8 @@
 #define TIMESTEP 20
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
-ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
-Estimator estimator;
+
+
 
 SoftwareSerial SWSerial(NOT_A_PIN, SerialTX); // RX on no pin (unused). Tx to S1.
 SabertoothSimplified sabertooth(SWSerial); // Use SWSerial as the serial port.
@@ -47,10 +46,6 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 40);
 
 void leftEncoderEvent() {
   motorLeft.encoderEvent();
-}
-
-void rightEncoderEvent() {
-  motorRight.encoderEvent();
 }
 
 // "acceleration" to radians
@@ -68,14 +63,7 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
-  newGain = newGain * 100;
-
-  // safety first. up to +/-127
-  if(newGain > 10){newGain = 10;}
-  if(newGain < -10){newGain = -10;}
-
   sabertooth.motor(1, newGain);
-  sabertooth.motor(2, newGain);
 }
 
 void turnIndicatorLightOff(){
@@ -101,12 +89,18 @@ void errorMode(const char* input) {
 
 // in meters
 float rawXPos() {
-  return (motorLeft.getDistance() + motorRight.getDistance()) / 2.0;
+  return (motorLeft.getDistance() + motorLeft.getDistance()) / 2.0;
 }
 
 // in radians
 float rawPhi() {
-  return (motorLeft.getPhi() + motorRight.getPhi()) / 2.0;
+  return (motorLeft.getPhi() + motorLeft.getPhi()) / 2.0;
+}
+
+// get avg angular velocity
+// in rads/sec
+float rawPhiDot() {
+  return motorLeft.getOtherAngularVelocity(TIMESTEP);
 }
 
 // in radians
@@ -137,10 +131,10 @@ void setup() {
 
   // initialize motor encoders and interrupts
   motorLeft.init();
-  motorRight.init();
+
   delay(100);
   attachInterrupt(digitalPinToInterrupt(LH_ENCODER_A), leftEncoderEvent, RISING);
-  attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, RISING);
+
 
   // Sabertooth motor driver commanded over Serial
   SWSerial.begin(9600);
@@ -155,33 +149,22 @@ void setup() {
     bno.setExtCrystalUse(true);
   }
 
-  // initialize our LQG regulator
-  estimator.init();
 
   // Turn on indicator light because we are ready to rock.
   turnIndicatorLightOn();
 
   // now that light is on, allow human to get the robot upright
-  delay(2000);
-
-  // print out two lines in case there  was garbage (noise) in beginning
-  Serial.println();
-  Serial.println();
-  delay(100);
-
-  // ensure our timeDelta is accurate by resetting timeMarker
-  // just before the loop starts
-  timeMarker = millis();
+  delay(1000);
+  updatePower(40);
 }
+
+float av = 0;
 
 void loop() {
   long timeDelta = millis() - timeMarker;
   if(timeDelta < TIMESTEP){return;}
   timeMarker = millis();
 
-  // update estimator, receive new marching orders
-  float newGain = estimator.update(timeDelta, rawPhi(), rawTheta(), rawThetaDot());
-
-  // update motor gain
-  updatePower(newGain);
+  av = rawPhiDot();
+  Serial.println(av, 3);
 }

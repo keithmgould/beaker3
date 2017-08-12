@@ -1,4 +1,4 @@
-clear;
+clear; clc;
 
 
 %% Build a and b matrix for Mobile Inverted Pendulum
@@ -55,7 +55,7 @@ sys_ss = ss(a,b,c,d,'statename',states,'inputname',inputs,'outputname',outputs);
 %% Convert Continuous to Discrete Time State-Space
 
 % Set timestep value in seconds
-Ts=0.1; % 10Hz
+Ts=0.02; % 50Hz
 
 % Convert Continous Time Model to Discrete Time Model
 sys_d = c2d(sys_ss,Ts,'zoh');
@@ -169,7 +169,7 @@ y0 = [0; 2; 0.10; 0];
 tspan = 0:.001:5;
 
 % closed loop:
-[t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
+% [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,-cont_K*y),tspan,y0);
 
 % open loop:
 % [t,y] = ode45(@(t,y)odes(y,I__b, I__w, m__b,m__w,l,g,r,0),tspan,y0);
@@ -195,9 +195,9 @@ tspan = 0:.001:5;
 % plot(t,(K(1).*y(:,1)+K(2).*y(:,2)+K(3).*y(:,3)+K(4).*y(:,4)))
 % title('gain u');
 %
-for k=1:100:length(t)
-    drawpend(y(k,:),r,l);
-end
+% for k=1:100:length(t)
+%     drawpend(y(k,:),r,l);
+% end
 
 %% These guys are used to power the Kalman filter in Simulink
 kalman_C = [1 0 0 0; 0 0 1 0; 0 0 0 1];

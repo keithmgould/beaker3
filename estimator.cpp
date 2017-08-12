@@ -106,13 +106,13 @@ private:
   void print(long loopTime, long updateTime){
     std::stringstream stm;
     stm << std::fixed;
-    stm << std::setprecision(2);
-    // stm << loopTime << ",";
-    // stm << updateTime << ",";
+    stm << std::setprecision(5);
+    stm << loopTime << ",";
+    stm << updateTime << ",";
     printObservations(stm);
     printStates(stm);
     stm << std::setprecision(5);
-    // stm << boundFloat(gain);
+    stm << boundFloat(gain);
     std::string str = stm.str();
     Serial.println(str.c_str());
   }

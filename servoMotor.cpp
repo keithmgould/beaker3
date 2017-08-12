@@ -15,7 +15,7 @@ class ServoMotor
   int lastEdgeCount;
   int firstEncoderPin, secondEncoderPin, tickDirection;
   float angularVelocity;
-  long secSinceLastMeasure;
+  long microSinceLastMeasure;
 
   void tickRight()
   {
@@ -31,13 +31,12 @@ class ServoMotor
   public:
   //-------------------------------------------------------------------
 
-  void computeAngularVelocity(){
-    long secNow = micros();
-    float secDelta = (float) (secNow - secSinceLastMeasure) / 1000000;
-    angularVelocity = (float) CLICKS_TO_RADIANS / secDelta;
-    averager.push(angularVelocity);
-    secSinceLastMeasure = secNow;
-  }
+  // void computeAngularVelocity(){
+  //   long microNow = micros();
+  //   float secDelta = (float) (microNow - microSinceLastMeasure) / 1000000;
+  //   angularVelocity = (float) CLICKS_TO_RADIANS / secDelta;
+  //   microSinceLastMeasure = microNow;
+  // }
 
   ServoMotor(int firstEncoderPinArg, int secondEncoderPinArg, int tickDirectionArg)
   {
@@ -51,7 +50,7 @@ class ServoMotor
 
     pinMode(firstEncoderPin, INPUT_PULLUP); // interupt
     pinMode(secondEncoderPin, INPUT_PULLUP); // non-interupt
-    secSinceLastMeasure = micros();
+    microSinceLastMeasure = micros();
     angularVelocity = 0;
     edgeCount = 0;
     lastEdgeCount = 0;
@@ -67,7 +66,9 @@ class ServoMotor
     return angularVelocity;
   }
 
-  // in radians/sec
+
+  // arg loopTime is in millis.
+  // return in radians/sec
   float getOtherAngularVelocity(long loopTime) {
     // calculate edgeDelta (how many encoder clicks)
     float edgeDelta = (float) abs(edgeCount - lastEdgeCount);
@@ -118,6 +119,5 @@ class ServoMotor
     } else {
       tickRight();
     }
-    // computeAngularVelocity();
   }
 };
