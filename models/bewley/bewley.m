@@ -74,8 +74,8 @@ poles_discrete = eig(A);
 % State Weights for Q weight matrix
 w = 1;          % phi state variable weight
 x = 1;          % phiDot state variable weight
-y = 100;          % theta state variable weight
-z = 100;          % thetaDot state variable weight
+y = 1;          % theta state variable weight
+z = 1;          % thetaDot state variable weight
 
 % Construct Q matrix (symmetric diagonal)
 Q = [w 0 0 0;
@@ -84,7 +84,7 @@ Q = [w 0 0 0;
      0 0 0 z];
 
 % Assign R value for LQR input weight
-R = 10000;
+R = 1;
 
 % Find LQR gain Matrix K and new poles e
 [K,S,e] = dlqr(A,B,Q,R);

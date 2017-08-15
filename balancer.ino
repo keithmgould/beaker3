@@ -1,4 +1,8 @@
 #include <StandardCplusplus.h>
+#include <iostream>
+#include <string>
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
@@ -16,7 +20,6 @@
 #define INDICATOR 36
 
 #include "servoMotor.cpp"
-#include "estimator.cpp"
 
 // pins for the motor encoders
 #define RH_ENCODER_A 2 // interupt pin
@@ -30,12 +33,16 @@
 
 // Time (in millisecs) between loops.
 // 20 => 50hz
-// 4  => 250hz
 #define TIMESTEP 20
+
+// LQR Gains
+#define K1 -0.0872
+#define K2 -0.1265
+#define K3 -9.4661
+#define K4 -1.9786
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
-Estimator estimator;
 
 SoftwareSerial SWSerial(NOT_A_PIN, SerialTX); // RX on no pin (unused). Tx to S1.
 SabertoothSimplified sabertooth(SWSerial); // Use SWSerial as the serial port.
@@ -68,11 +75,7 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
-  newGain = newGain * 100;
-
-  // safety first. up to +/-127
-  if(newGain > 10){newGain = 10;}
-  if(newGain < -10){newGain = -10;}
+  newGain = constrain(newGain * -30, -40, 40);
 
   sabertooth.motor(1, newGain);
   sabertooth.motor(2, newGain);
@@ -125,6 +128,18 @@ float rawThetaDot(){
   return degToRadians(RotationalVelocity.y());
 }
 
+
+float applyComplimentaryFilter(float &accTheta, float &gyroTheta){
+  // if it falls outside ~11 degrees its prob noise
+  if(accTheta < -0.2 || accTheta > 0.2) {return;}
+
+  return gyroTheta * 0.98 + accTheta * 0.02;
+}
+
+float calculateGain(float phi, float phiDot, float theta, float thetaDot){
+  return (phi*K1 + phiDot*K2 + theta*K3 + thetaDot*K4);
+}
+
 void setup() {
   pinMode(INDICATOR, OUTPUT);
   // turn off indicator light while we setup
@@ -155,16 +170,13 @@ void setup() {
     bno.setExtCrystalUse(true);
   }
 
-  // initialize our LQG regulator
-  estimator.init();
-
   // Turn on indicator light because we are ready to rock.
   turnIndicatorLightOn();
 
   // now that light is on, allow human to get the robot upright
   delay(2000);
 
-  // print out two lines in case there  was garbage (noise) in beginning
+  // print out two lines in case there  was garbage (noise) in serial setup
   Serial.println();
   Serial.println();
   delay(100);
@@ -174,14 +186,62 @@ void setup() {
   timeMarker = millis();
 }
 
+long nowish;
+float gyroAngle = 0;
+float dt = 0;
+float filteredTheta = 0;
+float newPhi = 0;
+float newTheta = 0;
+float newThetaDot = 0;
+float phiDot = 0;
+float lastPhi = 0;
+long timeDelta = 0;
+int loopCounter = 0;
+
+void printStuff(long loopTime, float phi, float phiDot, float theta, float thetaDot, float gain){
+  std::stringstream stm;
+  stm << std::fixed;
+  stm << std::setprecision(5);
+  stm << loopTime << ",";
+  stm << phi << ",";
+  stm << phiDot << ",";
+  stm << theta << ",";
+  stm << thetaDot << ",";
+  stm << gain;
+  std::string str = stm.str();
+  Serial.println(str.c_str());
+}
+
 void loop() {
-  long timeDelta = millis() - timeMarker;
+  nowish = millis();
+  timeDelta = nowish - timeMarker;
   if(timeDelta < TIMESTEP){return;}
-  timeMarker = millis();
+  timeMarker = nowish;
 
-  // update estimator, receive new marching orders
-  float newGain = estimator.update(timeDelta, rawPhi(), rawTheta(), rawThetaDot());
+  newThetaDot = rawThetaDot();
+  newPhi = rawPhi();
+  newTheta = rawTheta();
 
-  // update motor gain
-  updatePower(newGain);
+  // integrate gyro to get gyro's version of angle:
+  dt = (float) timeDelta / 1000;
+  gyroAngle += newThetaDot * dt;
+  filteredTheta = applyComplimentaryFilter(newTheta, gyroAngle);
+
+  // calculate phi dot.
+  newPhi = rawPhi();
+  phiDot = (newPhi - lastPhi) / dt;
+  lastPhi = newPhi;
+
+  // calculate Gain
+  float gain = calculateGain(newPhi, phiDot, filteredTheta, newThetaDot);
+
+  updatePower(gain);
+
+  printStuff(timeDelta, newPhi, phiDot, filteredTheta, newThetaDot, gain);
+  if(loopCounter == 4) {
+    loopCounter = 0;
+    // printStuff(timeDelta, newPhi, phiDot, filteredTheta, newThetaDot, gain);
+  }
+
+  loopCounter++;
 }
