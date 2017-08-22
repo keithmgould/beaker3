@@ -35,16 +35,12 @@
 // 20 => 50hz
 #define TIMESTEP 20
 
-// LQR Gains that work
 // #define K1 -0.05
-// #define K2 -0.1265
-// #define K3 -8.4661
-// #define K4 -0.80
-
-#define K1 -0.05
+#define K1 -0.025
 #define K2 -0.1265
 #define K3 -5.5
 #define K4 -1
+
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
@@ -199,25 +195,24 @@ void setup() {
   timeMarker = millis();
 }
 
+float gain = 0;
+int loopCounter = 0;
+float seconds = 0;
 
-
-void printStuff(long loopTime, float phi, float phiDot, float theta, float thetaDot, float gain, float newGain){
+void printStuff(float seconds, long loopTime, float phi, float phiDot, float theta, float thetaDot, float gain, float multiplier){
   std::stringstream stm;
   stm << std::fixed;
   stm << std::setprecision(5);
-  // stm << loopTime << ",";
+  stm << seconds << ",";
   stm << phi << ",";
   stm << phiDot << ",";
   stm << theta << ",";
   stm << thetaDot << ",";
   stm << gain << ",";
-  stm << newGain;
+  stm << multiplier;
   std::string str = stm.str();
   Serial.println(str.c_str());
 }
-
-
-float gain = 0;
 
 void loop() {
   // following four lines ensure loop is TIMESTEP ms long
@@ -225,6 +220,7 @@ void loop() {
   timeDelta = nowish - timeMarker;
   if(timeDelta < TIMESTEP){return;}
   timeMarker = nowish;
+  seconds += timeDelta;
 
   // fetch values from sensors
   newThetaDot = rawThetaDot();
@@ -244,6 +240,9 @@ void loop() {
 
   oldGain = gain;
   // calculate LQR Gain
+
+  if(abs(newPhi) < 0.5){ newPhi = 0; }
+
   gain = calculateGain(newPhi, phiDot, filteredTheta, newThetaDot);
 
   // if gain switched directions
@@ -251,11 +250,11 @@ void loop() {
     lastGainReversal = millis();
   }
 
-  // Band Stop Filter
+  // Ghetto Band Stop Filter
   multiplier = (millis() - lastGainReversal) * 0.00036765;
-  newGain = constrain(multiplier, 0, 0.8) + 0.2;
+  multiplier = constrain(multiplier, 0, 0.8) + 0.2;
 
-  updatePower(gain * newGain);
+  updatePower(gain * multiplier);
 
-  printStuff(timeDelta, newPhi, phiDot, filteredTheta, newThetaDot, gain, newGain);
+  printStuff(seconds, timeDelta, newPhi, phiDot, filteredTheta, newThetaDot, gain, multiplier);
 }
