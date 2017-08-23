@@ -216,15 +216,19 @@ void loop() {
   // calculate LQR Gain
   gain = calculateGain(newPhi, phiDot, filteredTheta, newThetaDot);
 
+
+  //--------------------------------------------------
+  // Ghetto Band Stop Filter
+
   // if gain switched directions
   if ((oldGain > 0 && gain < 0) || (oldGain < 0 && gain > 0)){
     lastGainReversal = millis();
   }
 
-  // Ghetto Band Stop Filter
-  // multiplier = (millis() - lastGainReversal) * 0.00036765;
+  // note square root of (g/l) ~~ 136ms
   multiplier = fabs(136 - (millis() - lastGainReversal)) * 0.00036765;
   multiplier = constrain(multiplier, 0, 0.8) + 0.2;
+  //-------------------------------------------------
 
   updatePower(gain * multiplier);
 
