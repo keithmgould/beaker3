@@ -64,7 +64,8 @@ float degToRadians(float deg) {
 }
 
 void updatePower(float newGain){
-  newGain = constrain(newGain * -150, -40, 40);
+  // newGain = constrain(newGain * -150, -40, 40);
+  newGain = constrain(newGain * -40, -40, 40);
 
   sabertooth.motor(1, newGain);
   sabertooth.motor(2, newGain);
@@ -221,7 +222,8 @@ void loop() {
   }
 
   // Ghetto Band Stop Filter
-  multiplier = (millis() - lastGainReversal) * 0.00036765;
+  // multiplier = (millis() - lastGainReversal) * 0.00036765;
+  multiplier = fabs(136 - (millis() - lastGainReversal)) * 0.00036765;
   multiplier = constrain(multiplier, 0, 0.8) + 0.2;
 
   updatePower(gain * multiplier);
