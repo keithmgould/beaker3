@@ -10,37 +10,8 @@
 #include <SoftwareSerial.h>
 #include <SabertoothSimplified.h>
 
-// IMU constants
-#define BALANCED_OFFSET 0.89 // sensor does not show 0 on balance but it should.
-
-// pi / 180, for degrees to radians
-#define PI_OVER_ONE_EIGHTY 0.017453292519943
-
-// LED on side of robot
-#define INDICATOR 36
-
 #include "../../servoMotor.cpp"
-
-// pins for the motor encoders
-#define RH_ENCODER_A 2 // interupt pin
-#define RH_ENCODER_B 38
-#define LH_ENCODER_A 3 // interupt pin
-#define LH_ENCODER_B 40
-
-// We communicate with the sabertooth motor driver
-// over serial
-#define SerialTX 18
-
-// Time (in millisecs) between loops.
-// 20 => 50hz
-#define TIMESTEP 20
-
-#define K1 -0.04743
-#define K2 -0.12315
-#define K3 -5.48
-#define K4 -1.00742
-
-
+#include "../../constants.cpp"
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
@@ -80,6 +51,9 @@ float bestK2 = 0;
 float bestK3 = 0;
 float bestK4 = 0;
 
+
+std::stringstream stm;
+std::string str;
 
 // reinforcement learning
 float k1;
@@ -223,7 +197,7 @@ void setup() {
 }
 
 float sumError(float phi, float phiDot, float theta, float thetaDot){
-  return abs(phi) + abs(phiDot / 5) + abs(theta * 5) + abs(thetaDot / 5);
+  return abs(phi * 5) + abs(phiDot) + abs(theta * 5) + abs(thetaDot);
 }
 
 void printStuff(float seconds, long loopTime, float phi, float phiDot, float theta, float thetaDot, float gain, float multiplier){
@@ -237,20 +211,21 @@ void printStuff(float seconds, long loopTime, float phi, float phiDot, float the
   stm << thetaDot << ",";
   stm << gain << ",";
   stm << multiplier;
-  std::string str = stm.str();
+  str = stm.str();
   Serial.println(str.c_str());
 }
 
 void printParams(){
-  std::stringstream stm;
+  stm.flush();
   stm << std::fixed;
   stm << std::setprecision(5);
+  stm << "\nNew Best: ";
   stm << k1 << ",";
   stm << k2 << ",";
   stm << k3 << ",";
   stm << k4 << ",";
   stm << minError;
-  std::string str = stm.str();
+  str = stm.str();
   Serial.println(str.c_str());
 }
 
@@ -260,6 +235,11 @@ float RandomFloat(float a, float b) {
   float r = random * diff;
   return a + r;
 }
+
+float k1Bound;
+float k2Bound;
+float k3Bound;
+float k4Bound;
 
 void loop() {
   // following four lines ensure loop is TIMESTEP ms long
@@ -271,7 +251,7 @@ void loop() {
 
   episodeTimeDelta = nowish - episodeTimeMarker;
 
-  if(episodeTimeDelta > 2000){
+  if(episodeTimeDelta > EPISODE_LENGTH){
     episodeTimeMarker = nowish;
 
     // see if we found a better set of params
@@ -285,14 +265,30 @@ void loop() {
       printParams();
     }
 
+    k1Bound = fabs(bestK1 * KBESTDIFF);
+    k2Bound = fabs(bestK2 * KBESTDIFF);
+    k3Bound = fabs(bestK3 * KBESTDIFF);
+    k4Bound = fabs(bestK4 * KBESTDIFF);
+
     // prep for new episode by choosing some new params
-    k1 = bestK1 + RandomFloat(-.01, .01);
-    k2 = bestK2 + RandomFloat(-.01, .01);
-    k3 = bestK3 + RandomFloat(-.01, .01);
-    k4 = bestK4 + RandomFloat(-.01, .01);
+    k1 = bestK1 + RandomFloat(-k1Bound, k1Bound);
+    k2 = bestK2 + RandomFloat(-k2Bound, k2Bound);
+    k3 = bestK3 + RandomFloat(-k3Bound, k3Bound);
+    k4 = bestK4 + RandomFloat(-k4Bound, k4Bound);
+
+    Serial.print("Now Trying: ");
+    stm.flush();
+    stm << std::fixed;
+    stm << std::setprecision(5);
+    stm << "\nNew Ks: ";
+    stm << k1 << ",";
+    stm << k2 << ",";
+    stm << k3 << ",";
+    stm << k4 << ",";
+    str = stm.str();
+    Serial.println(str.c_str());
 
     totalError = 0;
-    Serial.println("end of episode.");
     episodeTimeMarker = nowish;
   }
 

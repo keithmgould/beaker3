@@ -6,41 +6,13 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
+#include <cmath>
 
 #include <SoftwareSerial.h>
 #include <SabertoothSimplified.h>
 
-// IMU constants
-#define BALANCED_OFFSET 0.89 // sensor does not show 0 on balance but it should.
-
-// pi / 180, for degrees to radians
-#define PI_OVER_ONE_EIGHTY 0.017453292519943
-
-// LED on side of robot
-#define INDICATOR 36
-
 #include "servoMotor.cpp"
-
-// pins for the motor encoders
-#define RH_ENCODER_A 2 // interupt pin
-#define RH_ENCODER_B 38
-#define LH_ENCODER_A 3 // interupt pin
-#define LH_ENCODER_B 40
-
-// We communicate with the sabertooth motor driver
-// over serial
-#define SerialTX 18
-
-// Time (in millisecs) between loops.
-// 20 => 50hz
-#define TIMESTEP 20
-
-// #define K1 -0.05
-#define K1 -0.025
-#define K2 -0.1265
-#define K3 -5.5
-#define K4 -1
-
+#include "constants.cpp"
 
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
@@ -239,10 +211,8 @@ void loop() {
   lastPhi = newPhi;
 
   oldGain = gain;
+
   // calculate LQR Gain
-
-  if(abs(newPhi) < 0.5){ newPhi = 0; }
-
   gain = calculateGain(newPhi, phiDot, filteredTheta, newThetaDot);
 
   // if gain switched directions
