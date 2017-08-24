@@ -206,6 +206,11 @@ void loop() {
     filteredTheta = (filteredTheta + newThetaDot * dt) * 0.98 + newTheta * 0.02;
   }
 
+  if(fabs(filteredTheta) > 0.3){
+    updatePower(0);
+    return;
+  }
+
   // calculate phi dot (discrete derivative)
   newPhi = rawPhi();
   phiDot = (newPhi - lastPhi) / dt;
