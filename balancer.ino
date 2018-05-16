@@ -8,7 +8,6 @@
 #include <Adafruit_BNO055.h>
 #include <cmath>
 
-#include <SoftwareSerial.h>
 #include <SabertoothSimplified.h>
 
 #include "servoMotor.cpp"
@@ -17,8 +16,7 @@
 ServoMotor motorLeft(LH_ENCODER_A,LH_ENCODER_B, 1);
 ServoMotor motorRight(RH_ENCODER_A,RH_ENCODER_B, -1);
 
-SoftwareSerial SWSerial(NOT_A_PIN, SerialTX); // RX on no pin (unused). Tx to S1.
-SabertoothSimplified sabertooth(SWSerial); // Use SWSerial as the serial port.
+SabertoothSimplified sabertooth(Serial1); // Use Serial1 as the serial port.
 
 float currentTheta = 0; // can we do float() to declare instead of 0?
 float gyroAngle = 0;
@@ -67,8 +65,8 @@ void updatePower(float newGain){
   // newGain = constrain(newGain * -150, -40, 40);
   newGain = constrain(newGain * -40, -40, 40);
 
-  sabertooth.motor(1, newGain);
-  sabertooth.motor(2, newGain);
+  //sabertooth.motor(1, newGain);
+  //sabertooth.motor(2, newGain);
 }
 
 void turnIndicatorLightOff(){
@@ -115,7 +113,7 @@ float rawThetaDot(){
   // Angular velocity in degrees per second (needs to be converted)
   imu::Vector<3> RotationalVelocity = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
-  return degToRadians(RotationalVelocity.y());
+  return degToRadians(-RotationalVelocity.x());
 }
 
 float calculateGain(float phi, float phiDot, float theta, float thetaDot){
@@ -140,8 +138,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(RH_ENCODER_A), rightEncoderEvent, CHANGE);
 
   // Sabertooth motor driver commanded over Serial
-  SWSerial.begin(9600);
-  while (!SWSerial) {;}
+  Serial1.begin(9600); while (!Serial1) {delay(10);}
   updatePower(0);
 
   //Check to see if the Inertial Sensor is functioning

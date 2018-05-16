@@ -6,15 +6,15 @@
 #define PI_OVER_ONE_EIGHTY 0.017453292519943
 
 // LED on side of robot
-#define INDICATOR 36
+#define INDICATOR 8
 
 
 
 // pins for the motor encoders
 #define RH_ENCODER_A 2 // interupt pin
-#define RH_ENCODER_B 38
+#define RH_ENCODER_B 4
 #define LH_ENCODER_A 3 // interupt pin
-#define LH_ENCODER_B 40
+#define LH_ENCODER_B 5
 
 // We communicate with the sabertooth motor driver
 // over serial
